@@ -102,7 +102,6 @@ class Recipe(models.Model):
         Ingredients,
         related_name='recipe',
         verbose_name='Ингредиент',
-        blank=False,
     )
 
     class Meta:
@@ -114,29 +113,56 @@ class Recipe(models.Model):
         return self.name
 
 
-class Follow(models.Model):
+class Subscription(models.Model):
     """Подписка на пользователя"""
-    # User - Подписывается.
-    user = models.ForeignKey(
+    # subscriber - Подписывается.
+    subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower',
-        blank=False,
+        related_name='subscriptions',
     )
-    # Author - тот на кого подписываются.
-    author = models.ForeignKey(
+    # target_user  - тот на кого подписываются.
+    target_user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='following',
-        blank=False,
+        related_name='subscribers',
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания подписки'
     )
 
     class Meta:
+        ordering = ['created_at']
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'],
-                name='uq_user_author'
+                fields=['subscriber', 'target_user'],
+                name='uq_subscriber_target_user'
+            )
+        ]
+
+
+class FavoriteRecipe(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipes'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='recipe_added_to_favorite'
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['added_at']
+        verbose_name = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='uq_user_recipe'
             )
         ]
