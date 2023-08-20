@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 
 User = get_user_model()
@@ -7,16 +7,16 @@ User = get_user_model()
 
 class Tag(models.Model):
     """Теги."""
-    BREAKFAST = 'breakfast'
-    LUNCH = 'lunch'
-    SUPPER = 'supper'
-    CHOICES = (
-        (BREAKFAST, 'Завтрак'),
-        (LUNCH, 'Обед'),
-        (SUPPER, 'Ужин'),
+    name = models.CharField(max_length=50, null=False, verbose_name='Тег')
+    color = models.CharField(
+        max_length=16,
+        null=True,
+        validators=[RegexValidator(
+            regex="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            message='Введите верный код HEX-цвета. Выбрать можно тут '
+                    'https://www.color-hex.com/'
+        )]
     )
-    name = models.CharField(max_length=50, choices=CHOICES, null=False)
-    color = models.CharField(max_length=16, null=True)
     slug = models.SlugField(unique=True, null=True)
 
     class Meta:
@@ -28,7 +28,7 @@ class Tag(models.Model):
 
 
 class MeasurementUnit(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, verbose_name='Единица измерения')
 
     class Meta:
         verbose_name = 'Единица измерения'
@@ -40,7 +40,9 @@ class MeasurementUnit(models.Model):
 
 class Ingredients(models.Model):
     """Ингредиенты."""
-    name = models.CharField(max_length=200)
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Название ингредиента')
     measurement_unit = models.ForeignKey(
         MeasurementUnit,
         on_delete=models.CASCADE,
@@ -96,8 +98,7 @@ class Recipe(models.Model):
             MinValueValidator(1, 'Время не может быть меньше 1')
         ]
     )
-    text = models.TextField(blank=False)
-
+    text = models.TextField(blank=False, verbose_name='Описание рецепта')
     ingredients = models.ManyToManyField(
         Ingredients,
         related_name='recipe',
@@ -120,12 +121,14 @@ class Subscription(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='subscriptions',
+        verbose_name='Пользователь',
     )
     # target_user  - тот на кого подписываются.
     target_user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='subscribers',
+        verbose_name='Подписан на'
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -143,26 +146,35 @@ class Subscription(models.Model):
             )
         ]
 
+    def __str__(self):
+        return f'{self.subscriber} подписан на {self.target_user}'
+
 
 class FavoriteRecipe(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorite_recipes'
+        related_name='favorite_recipes',
+        verbose_name='Добавляет в избранное',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe_added_to_favorite'
+        related_name='recipe_added_to_favorite',
+        verbose_name='Рецепт',
     )
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['added_at']
         verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='uq_user_recipe'
             )
         ]
+
+    def __str__(self):
+        return f'{self.user} добавил в избранное {self.recipe}'
