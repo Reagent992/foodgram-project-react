@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    """Tags model."""
+    """Теги."""
     BREAKFAST = 'breakfast'
     LUNCH = 'lunch'
     SUPPER = 'supper'
@@ -19,6 +19,10 @@ class Tag(models.Model):
     color = models.CharField(max_length=16, null=True)
     slug = models.SlugField(unique=True, null=True)
 
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
     def __str__(self):
         return self.name
 
@@ -26,9 +30,16 @@ class Tag(models.Model):
 class MeasurementUnit(models.Model):
     name = models.CharField(max_length=200)
 
+    class Meta:
+        verbose_name = 'Единица измерения'
+        verbose_name_plural = 'Единицы измерения'
+
+    def __str__(self):
+        return self.name
+
 
 class Ingredients(models.Model):
-    """Ingredients model."""
+    """Ингредиенты."""
     name = models.CharField(max_length=200)
     measurement_unit = models.ForeignKey(
         MeasurementUnit,
@@ -38,9 +49,16 @@ class Ingredients(models.Model):
         related_name='ingredients',
     )
 
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return self.name
+
 
 class Recipe(models.Model):
-    """Recipe model."""
+    """Рецепты."""
 
     author = models.ForeignKey(
         User,
@@ -88,7 +106,37 @@ class Recipe(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
         ordering = ['-pub_date']
 
     def __str__(self):
         return self.name
+
+
+class Follow(models.Model):
+    """Подписка на пользователя"""
+    # User - Подписывается.
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        blank=False,
+    )
+    # Author - тот на кого подписываются.
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        blank=False,
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='uq_user_author'
+            )
+        ]
