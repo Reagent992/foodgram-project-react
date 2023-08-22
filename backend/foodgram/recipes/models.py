@@ -8,9 +8,9 @@ User = get_user_model()
 
 class Tag(models.Model):
     """Теги."""
-    name = models.CharField(max_length=50, null=False, verbose_name='Тег')
-    color = ColorField()
-    slug = models.SlugField(unique=True, null=True)
+    name = models.CharField(max_length=200, null=False, verbose_name='Тег')
+    color = ColorField(max_length=7)
+    slug = models.SlugField(max_length=200, unique=True, null=True)
 
     class Meta:
         verbose_name = 'Тег'
@@ -153,7 +153,7 @@ class FavoriteRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe_added_to_favorite',
+        related_name='recipes_added_to_favorite',
         verbose_name='Рецепт',
     )
     added_at = models.DateTimeField(auto_now_add=True)
@@ -171,3 +171,19 @@ class FavoriteRecipe(models.Model):
 
     def __str__(self):
         return f'{self.user} добавил в избранное {self.recipe}'
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart',
+        verbose_name='Добавляет в корзину',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='recipes_added_to_cart',
+        verbose_name='Рецепт',
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
