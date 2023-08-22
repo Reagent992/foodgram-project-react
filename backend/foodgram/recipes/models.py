@@ -76,7 +76,7 @@ class Recipe(models.Model):
     )
     tag = models.ManyToManyField(
         Tag,
-        related_name='recipe',
+        # related_name='recipe',
         verbose_name='Тег',
         blank=False,
     )
@@ -93,9 +93,9 @@ class Recipe(models.Model):
     )
     text = models.TextField(blank=False, verbose_name='Описание рецепта')
     ingredients = models.ManyToManyField(
-        Ingredients,
-        related_name='recipe',
-        verbose_name='Ингредиент',
+        to=Ingredients,
+        through='RecipeIngredients',
+        verbose_name='ингредиент'
     )
 
     class Meta:
@@ -105,6 +105,24 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RecipeIngredients(models.Model):
+    ingredient = models.ForeignKey(
+        to=Ingredients,
+        on_delete=models.CASCADE,
+        # related_name='ingredient',
+        verbose_name='Ингредиент',
+    )
+    recipe = models.ForeignKey(
+        to=Recipe,
+        on_delete=models.CASCADE,
+        # related_name='recipe',
+        verbose_name='рецепт',
+    )
+    amount = models.PositiveIntegerField(
+
+    )
 
 
 class Subscription(models.Model):
@@ -187,3 +205,11 @@ class ShoppingCart(models.Model):
         verbose_name='Рецепт',
     )
     added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['added_at']
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'
+
+    def __str__(self):
+        return f'{self.user} добавил в корзину {self.recipe}'
