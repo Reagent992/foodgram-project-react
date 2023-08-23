@@ -74,9 +74,9 @@ class Recipe(models.Model):
         default=None,
         help_text='Загрузите картинку'
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
-        # related_name='recipe',
+        related_name='recipe',
         verbose_name='Тег',
         blank=False,
     )
@@ -121,7 +121,6 @@ class RecipeIngredients(models.Model):
         verbose_name='рецепт',
     )
     amount = models.PositiveIntegerField(
-
     )
 
 
