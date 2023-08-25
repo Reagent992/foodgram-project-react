@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'colorfield',
+    'django_filters',
     # Apps:
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
@@ -64,14 +65,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-if sys.argv[0].find('pytest'):
+USE_POSTGRESQL = os.getenv('USE_POSTGRESQL', default='False')
+
+if sys.argv[0].find('pytest') or USE_POSTGRESQL is False:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-else:
+elif USE_POSTGRESQL:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -132,4 +135,4 @@ DJOSER = {
 }
 
 # TODO: Удалить.
-CSRF_TRUSTED_ORIGINS = ["localhost:3000", 'localhost']
+# CSRF_TRUSTED_ORIGINS = ['localhost']
