@@ -21,6 +21,7 @@ class Tag(models.Model):
 
 
 class MeasurementUnit(models.Model):
+    """Единицы измерения."""
     name = models.CharField(max_length=200, verbose_name='Единица измерения')
 
     class Meta:
@@ -111,14 +112,13 @@ class RecipeIngredients(models.Model):
     ingredient = models.ForeignKey(
         to=Ingredients,
         on_delete=models.CASCADE,
-        # related_name='ingredient',
         verbose_name='Ингредиент',
     )
     recipe = models.ForeignKey(
         to=Recipe,
         on_delete=models.CASCADE,
-        # related_name='recipe',
         verbose_name='рецепт',
+        related_name='recipeingredients'
     )
     amount = models.PositiveIntegerField(
     )
@@ -155,9 +155,6 @@ class Subscription(models.Model):
                 name='uq_subscriber_target_user'
             )
         ]
-
-    def __str__(self):
-        return f'{self.subscriber} подписан на {self.target_user}'
 
 
 class FavoriteRecipe(models.Model):
