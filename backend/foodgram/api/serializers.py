@@ -4,7 +4,6 @@ from colorfield.serializers import ColorField
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Recipe, Tag, RecipeIngredients, Ingredients,

@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -19,14 +17,13 @@ from recipes.models import Recipe, Tag, Ingredients, FavoriteRecipe
 User = get_user_model()
 
 
+# TODO: Список покупок.
+
 class FavoriteViewSet(CreateDestroyViewSet):
     """Добавление и Удаление из избранного."""
-    """
-    TODO: 
-    Не работает DELETE метод, почему-то запрещен.
-    """
     queryset = FavoriteRecipe.objects.all()
     serializer_class = FavoriteRecipeSerializer
+    pagination_class = None
 
     def create(self, request, *args, **kwargs):
         recipe = self.kwargs.get('recipe_id')
@@ -39,44 +36,31 @@ class FavoriteViewSet(CreateDestroyViewSet):
         return Response(serializer.data.pop('response'),
                         status=status.HTTP_201_CREATED, headers=headers)
 
-    def destroy(self, request, *args, **kwargs):
-        recipe = get_object_or_404(Recipe, pk=self.kwargs.get('recipe_id'))
+    @action(methods=['delete'], detail=False)
+    def delete(self, request, recipe_id):
         user = self.request.user
         instance = get_object_or_404(
-            FavoriteRecipe, user_id=user, recipe_id=recipe)
+            FavoriteRecipe, user_id=user, recipe_id=recipe_id)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def dispatch(self, request, *args, **kwargs):
-        print(request)
-        # TODO: Удалить dispatch.
-        res = super().dispatch(request, *args, **kwargs)
-
-        from django.db import connection
-        print('Количество запросов в БД:', len(connection.queries))
-        for q in connection.queries:
-            print('>>>>', q['sql'])
-        return res
-
 
 class RecipesViewSet(viewsets.ModelViewSet):
+    """Рецепты."""
     queryset = Recipe.objects.prefetch_related(
         'recipeingredients__ingredient', 'tags'
     ).all()
-    # serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
+    # TODO: Фильтрация избранного.
     filterset_class = FilterRecipeSet
 
-    # TODO: Добавление в избранное.
-    # TODO: Список покупок.
-
     def perform_create(self, serializer):
-        """Добавлеине автора при создании рецепта."""
+        """Добавление автора при создании рецепта."""
         serializer.save(author=self.request.user)
 
     def get_serializer_class(self):
-        """Выбор серилизатора в зависимости от запроса."""
+        """Выбор сериализатора в зависимости от запроса."""
         if self.action in ['list', 'retrieve']:
             return RecipeSerializer
         else:
@@ -94,6 +78,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(viewsets.ModelViewSet):
+    """Теги."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [TagsPermission]
@@ -137,6 +122,7 @@ class UserViewSetCustom(UserViewSet):
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Ингредиенты."""
     queryset = Ingredients.objects.prefetch_related('measurement_unit').all()
     serializer_class = IngredientsSerializer
     filter_backends = [DjangoFilterBackend]
