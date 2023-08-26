@@ -1,32 +1,62 @@
+from pprint import pprint
+
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from api.filters import FilterRecipeSet, FilterIngredientsSet
 from api.permissions import TagsPermission
 from api.serializers import (RecipeSerializer, TagSerializer, UserSerializer,
                              RecipeCreateEditSerializer,
-                             IngredientsSerializer)
+                             IngredientsSerializer, FavoriteRecipeSerializer)
 from api.viewsets_templates import CreateDestroyViewSet
-from recipes.models import Recipe, Tag, Ingredients
+from recipes.models import Recipe, Tag, Ingredients, FavoriteRecipe
 
 User = get_user_model()
 
 
 class FavoriteViewSet(CreateDestroyViewSet):
     """Добавление и Удаление из избранного."""
-    pass
+    """
+    TODO: 
+    Не работает DELETE метод, почему-то запрещен.
+    """
+    queryset = FavoriteRecipe.objects.all()
+    serializer_class = FavoriteRecipeSerializer
 
-    # serializer_class =
+    def create(self, request, *args, **kwargs):
+        recipe = self.kwargs.get('recipe_id')
+        request.data['recipe'] = recipe
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        # Возвращается только словарь response
+        return Response(serializer.data.pop('response'),
+                        status=status.HTTP_201_CREATED, headers=headers)
 
-    def perform_create(self, serializer):
-        pass
+    def destroy(self, request, *args, **kwargs):
+        recipe = get_object_or_404(Recipe, pk=self.kwargs.get('recipe_id'))
+        user = self.request.user
+        instance = get_object_or_404(
+            FavoriteRecipe, user_id=user, recipe_id=recipe)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def perform_destroy(self, instance):
-        pass
+    def dispatch(self, request, *args, **kwargs):
+        print(request)
+        # TODO: Удалить dispatch.
+        res = super().dispatch(request, *args, **kwargs)
+
+        from django.db import connection
+        print('Количество запросов в БД:', len(connection.queries))
+        for q in connection.queries:
+            print('>>>>', q['sql'])
+        return res
 
 
 class RecipesViewSet(viewsets.ModelViewSet):

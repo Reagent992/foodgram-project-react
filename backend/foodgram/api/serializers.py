@@ -4,8 +4,11 @@ from colorfield.serializers import ColorField
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
+from rest_framework.validators import UniqueTogetherValidator
 
-from recipes.models import Recipe, Tag, RecipeIngredients, Ingredients
+from recipes.models import (Recipe, Tag, RecipeIngredients, Ingredients,
+                            FavoriteRecipe)
 
 User = get_user_model()
 
@@ -103,3 +106,34 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
         fields = (
             'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time'
         )
+
+
+class HalfFieldsRecipeSerializer(serializers.ModelSerializer):
+    """Вспомогательный сериализатор для вывода добавленного в избранное."""
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class FavoriteRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор добавления в избранное."""
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    response = serializers.SerializerMethodField(method_name='get_response')
+
+    def get_response(self, obj):
+        serializer = HalfFieldsRecipeSerializer(obj.recipe)
+        return serializer.data
+
+    class Meta:
+        model = FavoriteRecipe
+        fields = (
+            'user', 'recipe', 'response'
+        )
+        validators = [
+            UniqueTogetherValidator(
+                queryset=FavoriteRecipe.objects.all(),
+                fields=('user', 'recipe'),
+                message='Уже добавлено в избранное'
+            )
+        ]
