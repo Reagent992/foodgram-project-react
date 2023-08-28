@@ -3,6 +3,7 @@ import base64
 from colorfield.serializers import ColorField
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -57,7 +58,22 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserSerializer(serializers.ModelSerializer):
+class CustomUserCreateSerializer(UserCreateSerializer):
+    """Сериализатор для регистрации пользователей."""
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'first_name', 'last_name', 'password',)
+
+        extra_kwargs = {'email': {'required': True, 'allow_blank': False},
+                        'username': {'required': True, 'allow_blank': False},
+                        'first_name': {'required': True, 'allow_blank': False},
+                        'last_name': {'required': True, 'allow_blank': False},
+                        'password': {'required': True, 'allow_blank': False},
+                        }
+
+
+class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей."""
     is_subscribed = serializers.SerializerMethodField()
 
@@ -71,8 +87,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """
         Проверка подписан ли делающий запрос user на просматриваемого user.
+        # FIXME: Количество запросов в БД равно количеству пользователей.
         """
-        # FIXME: Возможно это надо делать в viewset для оптимизации запроса в БД.
         requesting_user = self.context.get('request').user
         return requesting_user.subscriptions.filter(
             target_user=obj.id).exists()
@@ -99,12 +115,17 @@ class RecipeSerializer(serializers.ModelSerializer):
 class RecipeCreateEditSerializer(serializers.ModelSerializer):
     """Сериализатор для редактирования и создания рецептов."""
     image = Base64ImageFieldSerializer(required=True)
+    ingredients = RecipeIngredientsSerializer(
+        source='recipeingredients', many=True)
+    author = UserSerializer()  # TODO: "author": "Обязательное поле."
 
     class Meta:
         model = Recipe
-        fields = (
-            'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time'
-        )
+        fields = ('id', 'name', 'tags', 'cooking_time', 'text',
+                  'ingredients', 'author', 'image',
+                  # TODO: "is_favorited",
+                  # TODO: "is_in_shopping_cart",
+                  )
 
 
 class HalfFieldsRecipeSerializer(serializers.ModelSerializer):
@@ -121,6 +142,7 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
     response = serializers.SerializerMethodField(method_name='get_response')
 
     def get_response(self, obj):
+        """Добавление полей необходимых в ответе."""
         serializer = HalfFieldsRecipeSerializer(obj.recipe)
         return serializer.data
 

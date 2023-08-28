@@ -134,7 +134,15 @@ REST_FRAMEWORK = {
 }
 DJOSER = {
     'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'current_user': 'api.serializers.CustomUserSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'user_create': 'api.serializers.CustomUserCreateSerializer',
+    },
+    'PERMISSIONS':
+        {
+            'user': ['rest_framework.permissions.IsAuthenticated'],
+            'user_list': ['rest_framework.permissions.IsAuthenticated'],
+        },
+    'HIDE_USERS': False,
 }
-
-# TODO: Удалить.
-# CSRF_TRUSTED_ORIGINS = ['localhost']
