@@ -1,6 +1,6 @@
 from colorfield.fields import ColorField
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -89,7 +89,9 @@ class Recipe(models.Model):
         verbose_name='Время приготовления',
         blank=False,
         validators=[
-            MinValueValidator(1, 'Время не может быть меньше 1')
+            MinValueValidator(1, 'Время приготовления не может быть меньше 1'),
+            MaxValueValidator(1440,
+                              'Время приготовления не может быть больше 1440')
         ]
     )
     text = models.TextField(blank=False, verbose_name='Описание рецепта')
@@ -123,6 +125,9 @@ class RecipeIngredients(models.Model):
     amount = models.PositiveIntegerField(
     )
 
+    def __str__(self):
+        return 'Ингредиент'
+
 
 class Subscription(models.Model):
     """Подписка на пользователя"""
@@ -155,6 +160,9 @@ class Subscription(models.Model):
                 name='uq_subscriber_target_user'
             )
         ]
+
+    def __str__(self):
+        return f'{self.subscriber} подписан на {self.target_user}'
 
 
 class FavoriteRecipe(models.Model):

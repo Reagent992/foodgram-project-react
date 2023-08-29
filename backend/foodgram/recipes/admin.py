@@ -42,6 +42,7 @@ create_admin_group()
 class RecipeIngredientsInline(admin.TabularInline):
     model = RecipeIngredients
     extra = 1
+    autocomplete_fields = ('ingredient',)
 
 
 @admin.register(Recipe)
@@ -52,8 +53,12 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'author', 'recipes_added_to_favorite_count', 'pub_date')
     list_filter = 'author', 'name', 'tags'
+    search_fields = ('name', 'author',)
+    autocomplete_fields = ('author',)
+    filter_horizontal = ('tags',)
 
     def recipes_added_to_favorite_count(self, obj):
+        """Подсчет кол-ва добавлений рецепта в избранное."""
         return obj.faved_recipies
 
     recipes_added_to_favorite_count.short_description = (
@@ -62,7 +67,7 @@ class RecipeAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """
         Попытка оптимизации запроса в БД.
-        Кол-во запросов 7 * на кол-во рецептов.
+        Кол-во запросов: 7 * на кол-во рецептов.
         """
         queryset = Recipe.objects.annotate(
             faved_recipies=Count('recipes_added_to_favorite')
@@ -71,7 +76,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
+class UserAdmin(UserAdmin):
     """Пользователь."""
     list_display = (
         'username', 'email', 'first_name', 'last_name', 'is_staff',
@@ -81,14 +86,16 @@ class CustomUserAdmin(UserAdmin):
 
 
 @admin.register(Ingredients)
-class CustomIngredientsAdmin(admin.ModelAdmin):
+class IngredientsAdmin(admin.ModelAdmin):
     """Ингредиенты."""
     list_display = 'name', 'measurement_unit'
     list_filter = ('name',)
+    search_fields = ('name',)
 
 
 @admin.register(Tag)
-class CustomTagAdmin(admin.ModelAdmin):
+class TagAdmin(admin.ModelAdmin):
     """Теги."""
     list_display = 'name', 'color', 'slug'
     list_filter = 'name', 'color'
+    search_fields = ('name__icontains',)
