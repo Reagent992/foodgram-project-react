@@ -8,9 +8,33 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Recipe, Tag, RecipeIngredients, Ingredients,
-                            FavoriteRecipe)
+                            FavoriteRecipe, Subscription)
 
 User = get_user_model()
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """Создание и удалеине подписок."""
+    subscriber = serializers.HiddenField(
+        default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Subscription
+        fields = ('subscriber', 'target_user')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Subscription.objects.all(),
+                fields=('subscriber', 'target_user'),
+                message='Вы уже подписались на этого пользователя.'
+            )
+        ]
+
+    def to_representation(self, instance):
+        if self.context['request'].method == 'POST':
+            serializer = CustomUserSerializer(
+                instance.target_user, context=self.context)
+            return serializer.data
+        return super().to_representation(instance)
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
@@ -51,8 +75,6 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
     color = ColorField()
 
-    # TODO: Сделать валидацию цвета, из сериализатором из библиотеки.
-    # TODO: Валидация по unique slug
     class Meta:
         model = Tag
         fields = '__all__'
@@ -100,8 +122,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     ingredients = RecipeIngredientsSerializer(
         source='recipeingredients', many=True)
-    # TODO: Подставлять автора при создании рецепта.
-    author = UserSerializer()
+    author = CustomUserSerializer()
 
     class Meta:
         model = Recipe
@@ -117,14 +138,12 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
     image = Base64ImageFieldSerializer(required=True)
     ingredients = RecipeIngredientsSerializer(
         source='recipeingredients', many=True)
-    author = UserSerializer()  # TODO: "author": "Обязательное поле."
+    author = CustomUserSerializer()
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tags', 'cooking_time', 'text',
                   'ingredients', 'author', 'image',
-                  # TODO: "is_favorited",
-                  # TODO: "is_in_shopping_cart",
                   )
 
 
@@ -139,18 +158,10 @@ class HalfFieldsRecipeSerializer(serializers.ModelSerializer):
 class FavoriteRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор добавления в избранное."""
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    response = serializers.SerializerMethodField(method_name='get_response')
-
-    def get_response(self, obj):
-        """Добавление полей необходимых в ответе."""
-        serializer = HalfFieldsRecipeSerializer(obj.recipe)
-        return serializer.data
 
     class Meta:
         model = FavoriteRecipe
-        fields = (
-            'user', 'recipe', 'response'
-        )
+        fields = ('user', 'recipe')
         validators = [
             UniqueTogetherValidator(
                 queryset=FavoriteRecipe.objects.all(),
@@ -158,3 +169,22 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
                 message='Уже добавлено в избранное'
             )
         ]
+
+    def to_representation(self, instance):
+        if self.context['request'].method == 'POST':
+            serializer = HalfFieldsRecipeSerializer(instance.recipe)
+            return serializer.data
+        return super().to_representation(instance)
+
+
+class SubscriptionResponseSerializer(serializers.Serializer):
+    """Мои подписки."""
+    email = serializers.EmailField(source='target_user.email')
+    id = serializers.IntegerField(source='target_user.id')
+    username = serializers.CharField(source='target_user.username')
+    first_name = serializers.CharField(source='target_user.first_name')
+    last_name = serializers.CharField(source='target_user.last_name')
+    is_subscribed = serializers.BooleanField(source='target_user')
+    recipes = HalfFieldsRecipeSerializer(source='target_user.recipe.all',
+                                         many=True)
+    recipes_count = serializers.IntegerField(source='target_user.recipe.count')

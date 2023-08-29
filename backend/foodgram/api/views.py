@@ -9,14 +9,56 @@ from api.filters import FilterRecipeSet, FilterIngredientsSet
 from api.permissions import TagsPermission
 from api.serializers import (RecipeSerializer, TagSerializer,
                              RecipeCreateEditSerializer,
-                             IngredientsSerializer, FavoriteRecipeSerializer)
-from api.viewsets_templates import CreateDestroyViewSet
-from recipes.models import Recipe, Tag, Ingredients, FavoriteRecipe
+                             IngredientsSerializer, FavoriteRecipeSerializer,
+                             SubscriptionSerializer,
+                             SubscriptionResponseSerializer)
+from api.viewsets_templates import (CreateDestroyViewSet,
+                                    ListCreateDestroyViewSet)
+from recipes.models import (Recipe, Tag, Ingredients, FavoriteRecipe,
+                            Subscription)
 
 User = get_user_model()
 
 
 # TODO: Список покупок.
+
+
+class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
+    """Создание и удалеине подписок."""
+
+    def get_queryset(self):
+        return Subscription.objects.select_related(
+            'target_user'
+        ).filter(subscriber=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SubscriptionResponseSerializer
+        return SubscriptionSerializer
+
+    def create(self, request, *args, **kwargs):
+        recipe = self.kwargs.get('target_user')
+        request.data['target_user'] = recipe
+        return super().create(request, *args, **kwargs)
+
+    @action(methods=['delete'], detail=False)
+    def delete(self, request, target_user):
+        user = self.request.user
+        instance = get_object_or_404(
+            Subscription, subscriber=user, target_user=target_user)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def dispatch(self, request, *args, **kwargs):
+        # TODO: Удалить dispatch.
+        res = super().dispatch(request, *args, **kwargs)
+
+        from django.db import connection
+        print('Количество запросов в БД:', len(connection.queries))
+        for q in connection.queries:
+            print('>>>>', q['sql'])
+        return res
+
 
 class FavoriteViewSet(CreateDestroyViewSet):
     """Добавление и Удаление из избранного."""
@@ -27,13 +69,7 @@ class FavoriteViewSet(CreateDestroyViewSet):
     def create(self, request, *args, **kwargs):
         recipe = self.kwargs.get('recipe_id')
         request.data['recipe'] = recipe
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        # Возвращается только словарь response
-        return Response(serializer.data.pop('response'),
-                        status=status.HTTP_201_CREATED, headers=headers)
+        return super().create(request, *args, **kwargs)
 
     @action(methods=['delete'], detail=False)
     def delete(self, request, recipe_id):
@@ -111,7 +147,7 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientsSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = FilterIngredientsSet
-    # TODO: Без AllowAny редактирование рецепта на фронте не работает
+    # TODO: Без AllowAny редактирование ингредиента на фронте не работает.
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
