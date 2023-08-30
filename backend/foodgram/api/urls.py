@@ -3,13 +3,16 @@ from rest_framework import routers
 
 from api.views import (RecipesViewSet, TagViewSet,
                        IngredientsViewSet, FavoriteViewSet,
-                       ListCreateDestoySubscriptionViewSet)
+                       ListCreateDestoySubscriptionViewSet,
+                       ShoppingCartViewSet)
 
 v1_router = routers.DefaultRouter()
 v1_router.register("recipes",
                    RecipesViewSet)
 v1_router.register(r"recipes/(?P<recipe_id>\d+)/favorite",
                    FavoriteViewSet)
+v1_router.register(r"recipes/(?P<recipe_id>\d+)/shopping_cart",
+                   ShoppingCartViewSet)
 v1_router.register("tags",
                    TagViewSet)
 v1_router.register("ingredients",

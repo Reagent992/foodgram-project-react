@@ -11,16 +11,33 @@ from api.serializers import (RecipeSerializer, TagSerializer,
                              RecipeCreateEditSerializer,
                              IngredientsSerializer, FavoriteRecipeSerializer,
                              SubscriptionSerializer,
-                             SubscriptionResponseSerializer)
+                             SubscriptionResponseSerializer,
+                             ShoppingCartSerializer)
 from api.viewsets_templates import (CreateDestroyViewSet,
                                     ListCreateDestroyViewSet)
 from recipes.models import (Recipe, Tag, Ingredients, FavoriteRecipe,
-                            Subscription)
+                            Subscription, ShoppingCart)
 
 User = get_user_model()
 
 
-# TODO: Список покупок.
+class ShoppingCartViewSet(CreateDestroyViewSet):
+    """Список покупок."""
+    queryset = ShoppingCart.objects.all()
+    serializer_class = ShoppingCartSerializer
+
+    def create(self, request, *args, **kwargs):
+        recipe = self.kwargs.get('recipe_id')
+        request.data['recipe'] = recipe
+        return super().create(request, *args, **kwargs)
+
+    @action(methods=['delete'], detail=False)
+    def delete(self, request, recipe_id):
+        user = self.request.user
+        instance = get_object_or_404(
+            ShoppingCart, user=user, recipe=recipe_id)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
