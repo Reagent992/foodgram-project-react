@@ -24,12 +24,12 @@ User = get_user_model()
 
 
 class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
-    """Создание и удалеине подписок."""
+    """Подписки."""
 
     def get_queryset(self):
-        return Subscription.objects.select_related(
-            'target_user'
-        ).filter(subscriber=self.request.user)
+        queryset = self.request.user.subscriptions.select_related(
+            'target_user').all()
+        return queryset.prefetch_related('target_user__recipe')
 
     def get_serializer_class(self):
         if self.action == 'list':

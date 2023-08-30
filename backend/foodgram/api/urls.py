@@ -3,8 +3,7 @@ from rest_framework import routers
 
 from api.views import (RecipesViewSet, TagViewSet,
                        IngredientsViewSet, FavoriteViewSet,
-                       ListCreateDestoySubscriptionViewSet,
-                       )
+                       ListCreateDestoySubscriptionViewSet)
 
 v1_router = routers.DefaultRouter()
 v1_router.register("recipes",
