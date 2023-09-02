@@ -7,12 +7,14 @@ from rest_framework.response import Response
 
 from api.filters import FilterRecipeSet, FilterIngredientsSet
 from api.permissions import TagsPermission
-from api.serializers import (RecipeSerializer, TagSerializer,
-                             RecipeCreateEditSerializer,
-                             IngredientsSerializer, FavoriteRecipeSerializer,
-                             SubscriptionSerializer,
-                             SubscriptionResponseSerializer,
-                             ShoppingCartSerializer)
+from api.serializers.api.favorite import FavoriteRecipeSerializer
+from api.serializers.api.recipe import (RecipeListRetriveSerializer,
+                                        RecipeCreateEditSerializer)
+from api.serializers.api.shopping_cart import ShoppingCartSerializer
+from api.serializers.api.ingredients import IngredientsSerializer
+from api.serializers.api.tags import TagSerializer
+from api.serializers.api.subscriptions import (SubscriptionResponseSerializer,
+                                               SubscriptionSerializer)
 from api.viewsets_templates import (CreateDestroyViewSet,
                                     ListCreateDestroyViewSet)
 from recipes.models import (Recipe, Tag, Ingredients, FavoriteRecipe,
@@ -112,10 +114,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.prefetch_related(
         'recipeingredients__ingredient', 'tags'
     ).all()
-    serializer_class = RecipeSerializer
-    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    # TODO: Фильтрация избранного.
+    # TODO: Фильтрация избранного, shopping_cart
     filterset_class = FilterRecipeSet
 
     def perform_create(self, serializer):
@@ -125,7 +125,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от запроса."""
         if self.action in ['list', 'retrieve']:
-            return RecipeSerializer
+            return RecipeListRetriveSerializer
         else:
             return RecipeCreateEditSerializer
 
@@ -164,8 +164,6 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientsSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = FilterIngredientsSet
-    # TODO: Без AllowAny редактирование ингредиента на фронте не работает.
-    permission_classes = [permissions.AllowAny]
     pagination_class = None
 
     def dispatch(self, request, *args, **kwargs):

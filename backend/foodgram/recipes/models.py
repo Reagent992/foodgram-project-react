@@ -89,16 +89,20 @@ class Recipe(models.Model):
         verbose_name='Время приготовления',
         blank=False,
         validators=[
-            MinValueValidator(1, 'Время приготовления не может быть меньше 1'),
-            MaxValueValidator(1440,
-                              'Время приготовления не может быть больше 1440')
+            MinValueValidator(
+                limit_value=1,
+                message='Время приготовления не может быть меньше 1'),
+            MaxValueValidator(
+                limit_value=1440,
+                message='Время приготовления не может быть больше 1440')
         ]
     )
     text = models.TextField(blank=False, verbose_name='Описание рецепта')
     ingredients = models.ManyToManyField(
         to=Ingredients,
         through='RecipeIngredients',
-        verbose_name='ингредиент'
+        verbose_name='ингредиент',
+        related_name='recipe'
     )
 
     class Meta:
@@ -115,6 +119,7 @@ class RecipeIngredients(models.Model):
         to=Ingredients,
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
+        related_name='recipeingredients'
     )
     recipe = models.ForeignKey(
         to=Recipe,
@@ -123,10 +128,28 @@ class RecipeIngredients(models.Model):
         related_name='recipeingredients'
     )
     amount = models.PositiveIntegerField(
+        validators=(MinValueValidator(
+            limit_value=1,
+            message='Количество не может быть меньше 1.'),
+                    MaxValueValidator(
+                        limit_value=9999,
+                        message='Количество не может быть больше 9999'
+                    )
+        ),
+        verbose_name='Количество',
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'recipe'],
+                name='uq_ingredient_recipe',
+            )
+        ]
+
     def __str__(self):
-        return 'Ингредиент'
+        return (f'Ингредиент "{self.ingredient.name}"'
+                f' в количестве {self.amount}')
 
 
 class Subscription(models.Model):
