@@ -5,9 +5,8 @@ from api.serializers.api.tags import TagSerializer
 from api.serializers.api.users import CustomUserSerializer
 from api.serializers.nested.base64 import Base64ImageFieldSerializer
 from api.serializers.nested.recipe import (RecipeIngredientsSerializer,
-                                           HalfIngredientsSerializer,
                                            )
-from recipes.models import Recipe, Ingredients, RecipeIngredients, Tag
+from recipes.models import Recipe, RecipeIngredients
 
 
 class RecipeListRetriveSerializer(serializers.ModelSerializer):
@@ -29,29 +28,21 @@ class RecipeListRetriveSerializer(serializers.ModelSerializer):
 
 class RecipeCreateEditSerializer(serializers.ModelSerializer):
     """Сериализатор для редактирования и создания рецептов."""
-    image = Base64ImageFieldSerializer(required=True, write_only=True)
-    ingredients = serializers.ListField(child=HalfIngredientsSerializer(),
-                                        write_only=True)
+    image = Base64ImageFieldSerializer(required=True)
+    ingredients = RecipeIngredientsSerializer(
+        source='recipeingredients', many=True)
 
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'cooking_time', 'text',
+        fields = ('name', 'cooking_time', 'text',
                   'ingredients', 'image',
-                  'tags',
-                  )
-
-    def to_representation(self, instance):
-        if self.context['request'].method == 'POST':
-            serializer = RecipeListRetriveSerializer
-            return serializer.data
-        print(instance)
-        return super().to_representation(instance)
+                  'tags',)
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             amount = ingredient.pop('amount', False)
             new_ingredient = ingredient.pop('id', False)
-            if amount and ingredient:
+            if amount and new_ingredient:
                 RecipeIngredients.objects.create(
                     recipe=recipe,
                     ingredient=new_ingredient,
@@ -61,12 +52,12 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
     @atomic
     def create(self, validated_data):
         """Запись ингредиентов и тегов в рецепт."""
-        ingredients = validated_data.pop('ingredients', False)
+        ingredients = validated_data.pop('recipeingredients', False)
         tags = validated_data.pop('tags', False)
         recipe = Recipe.objects.create(**validated_data)
         if ingredients:
             self.create_ingredients(ingredients=ingredients,
-                                    recipe=Recipe)
+                                    recipe=recipe)
 
         recipe.tags.set(tags)
         return recipe
@@ -81,7 +72,7 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
         instance.text = validated_data.pop('text', instance.text)
 
         new_ingredients = validated_data.pop(
-            'ingredients', False)
+            'recipeingredients', False)
         new_tags = validated_data.pop('tags', False)
         instance.ingredients.clear()
         instance.tags.clear()
