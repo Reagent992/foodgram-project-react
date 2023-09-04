@@ -18,27 +18,6 @@ admin.site.register(MeasurementUnit)
 admin.site.register(ShoppingCart)
 
 
-def create_admin_group():
-    """Создание группы admin при первом запуске."""
-    methods = ('add', 'change', 'view', 'delete')
-    models = ('user', 'recipe', 'ingredients', 'tag',)
-    group, created = Group.objects.get_or_create(name='admin')
-    if created:
-        str_permissions_list = []
-        for model in models:
-            str_permissions_list.extend(
-                [f'{method}_{model}' for method in methods])
-        id_permissoin_list = [Permission.objects.get(codename=str(permission))
-                              for
-                              permission in str_permissions_list]
-        [group.permissions.add(permission) for permission in
-         id_permissoin_list]
-        group.save()
-
-
-create_admin_group()
-
-
 class RecipeIngredientsInline(admin.TabularInline):
     model = RecipeIngredients
     extra = 1

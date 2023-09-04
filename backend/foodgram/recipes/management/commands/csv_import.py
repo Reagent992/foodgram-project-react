@@ -63,14 +63,24 @@ class Command(BaseCommand):
                 except Exception as e:
                     errors_list.append(f'Ошибка {e} на строке {row}')
 
-            print('-------------------------Итог:----------------------------')
-            print(f'Введено {counter_ingredients} ингредиентов')
-            print(f'Введено {counter_measurement_units} единиц измерения')
-            print(f'{measurement_unit_already_in_db} '
-                  f'единиц измерения уже было в БД')
-            print(f'{ingredient_already_in_db} '
-                  f'ингредиентов уже было в БД.')
+            self.stdout.write(
+                '-------------------------Итог:----------------------------')
+            self.stdout.write(self.style.SUCCESS(
+                f'Введено {counter_ingredients} ингредиентов'
+            ))
+            self.stdout.write(self.style.SUCCESS(
+                f'Введено {counter_measurement_units} единиц измерения'
+            ))
+            self.stdout.write(self.style.WARNING(
+                f'{measurement_unit_already_in_db} '
+                f'единиц измерения уже было в БД'
+            ))
+            self.stdout.write(self.style.WARNING(
+                f'{ingredient_already_in_db} '
+                f'ингредиентов уже было в БД.'
+            ))
+            print()
             if errors_list:
-                print('Ошибки:')
+                self.stdout.write(self.style.ERROR('Ошибки:'))
                 for e in errors_list:
                     print(e)
