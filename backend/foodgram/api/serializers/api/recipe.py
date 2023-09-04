@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db.transaction import atomic
 from rest_framework import serializers
 
@@ -8,6 +9,8 @@ from api.serializers.nested.recipe import (RecipeIngredientsSerializer,
                                            )
 from recipes.models import Recipe, RecipeIngredients
 
+User = get_user_model()
+
 
 class RecipeListRetriveSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов."""
@@ -16,14 +19,24 @@ class RecipeListRetriveSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientsSerializer(
         source='recipeingredients', many=True)
     author = CustomUserSerializer()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tags', 'cooking_time', 'text',
                   'ingredients', 'author', 'image',
-                  # TODO: "is_favorited",
-                  # TODO: "is_in_shopping_cart",
-                  )
+                  "is_favorited", "is_in_shopping_cart",)
+
+    def get_is_favorited(self, obj):
+        """Проверка добавил ли автор этот рецепт в избранное."""
+        requesting_user = self.context.get('request').user
+        return requesting_user.favorite_recipes.filter(recipe=obj).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        """Проверка добавлен ли рецепт в корзину."""
+        requesting_user = self.context.get('request').user
+        return requesting_user.shopping_cart.filter(recipe=obj).exists()
 
 
 class RecipeCreateEditSerializer(serializers.ModelSerializer):
