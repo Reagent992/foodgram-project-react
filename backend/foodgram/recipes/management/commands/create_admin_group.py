@@ -10,10 +10,12 @@ class Command(BaseCommand):
             models = ('user', 'recipe', 'ingredients', 'tag',)
             admin, created = Group.objects.get_or_create(name='admin')
             if created:
+                permissions = list()
                 for model in models:
-                    permission = Permission.objects.filter(
-                        content_type__model=model)
-                    admin.permissions.add(permission)
+                    permissions.extend(Permission.objects.filter(
+                        content_type__model=model))
+
+                admin.permissions.set(permissions)
             self.stdout.write(
                 self.style.SUCCESS('Группа создана.')
             )

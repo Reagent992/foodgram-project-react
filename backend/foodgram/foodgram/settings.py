@@ -17,25 +17,33 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv('DEBUG', default=False)
 
-ALLOWED_HOSTS = re.split(r'\s*,\s*', os.getenv('ALLOWED_HOSTS', default='*'))
+ALLOWED_HOSTS = re.split(r'\s*,\s*', os.getenv(
+    'ALLOWED_HOSTS',
+    default='["127.0.0.1", "localhost", "backend"]'))
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Libs:
+]
+THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
     'colorfield',
     'django_filters',
-    # Apps:
+]
+LOCAL_APPS = [
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
+    'users.apps.UsersConfig',
 ]
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+AUTH_USER_MODEL = "users.User"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -141,8 +149,9 @@ DJOSER = {
     },
     'PERMISSIONS':
         {
-            'user': ['rest_framework.permissions.IsAuthenticated'],
-            'user_list': ['rest_framework.permissions.IsAuthenticated'],
+            'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+            'user_list': [
+                'rest_framework.permissions.IsAuthenticatedOrReadOnly'],
         },
     'HIDE_USERS': False,
 }

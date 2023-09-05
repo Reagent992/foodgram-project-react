@@ -44,8 +44,6 @@ class Command(BaseCommand):
                         ))
                     if created_measurment_unit_status:
                         counter_measurement_units += 1
-                    elif not created_measurment_unit_status:
-                        measurement_unit_already_in_db += 1
                 except Exception as e:
                     errors_list.append(f'Ошибка {e} на строке {row}')
 
@@ -70,10 +68,6 @@ class Command(BaseCommand):
             ))
             self.stdout.write(self.style.SUCCESS(
                 f'Введено {counter_measurement_units} единиц измерения'
-            ))
-            self.stdout.write(self.style.WARNING(
-                f'{measurement_unit_already_in_db} '
-                f'единиц измерения уже было в БД'
             ))
             self.stdout.write(self.style.WARNING(
                 f'{ingredient_already_in_db} '

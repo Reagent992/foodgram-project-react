@@ -1,5 +1,6 @@
 from colorfield.fields import ColorField
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
@@ -115,6 +116,7 @@ class Recipe(models.Model):
 
 
 class RecipeIngredients(models.Model):
+    """Ингредиенты рецептов."""
     ingredient = models.ForeignKey(
         to=Ingredients,
         on_delete=models.CASCADE,
@@ -152,43 +154,8 @@ class RecipeIngredients(models.Model):
                 f' в количестве {self.amount}')
 
 
-class Subscription(models.Model):
-    """Подписка на пользователя"""
-    # subscriber - Подписывается.
-    subscriber = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='subscriptions',
-        verbose_name='Пользователь',
-    )
-    # target_user  - тот на кого подписываются.
-    target_user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='subscribers',
-        verbose_name='Подписан на'
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания подписки'
-    )
-
-    class Meta:
-        ordering = ['created_at']
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['subscriber', 'target_user'],
-                name='uq_subscriber_target_user'
-            )
-        ]
-
-    def __str__(self):
-        return f'{self.subscriber} подписан на {self.target_user}'
-
-
 class FavoriteRecipe(models.Model):
+    """Любимые рецепты."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -219,6 +186,7 @@ class FavoriteRecipe(models.Model):
 
 
 class ShoppingCart(models.Model):
+    """Список покупок."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

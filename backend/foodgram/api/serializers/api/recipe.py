@@ -31,12 +31,16 @@ class RecipeListRetriveSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         """Проверка добавил ли автор этот рецепт в избранное."""
         requesting_user = self.context.get('request').user
-        return requesting_user.favorite_recipes.filter(recipe=obj).exists()
+        if not requesting_user.is_anonymous:
+            return requesting_user.favorite_recipes.filter(recipe=obj).exists()
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         """Проверка добавлен ли рецепт в корзину."""
         requesting_user = self.context.get('request').user
-        return requesting_user.shopping_cart.filter(recipe=obj).exists()
+        if not requesting_user.is_anonymous:
+            return requesting_user.shopping_cart.filter(recipe=obj).exists()
+        return False
 
 
 class RecipeCreateEditSerializer(serializers.ModelSerializer):

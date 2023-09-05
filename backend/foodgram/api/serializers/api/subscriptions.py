@@ -3,7 +3,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 from api.serializers.api.users import CustomUserSerializer
-from recipes.models import Subscription
+from users.models import Subscription
 
 
 class SubscriptionResponseSerializer(serializers.Serializer):
@@ -34,6 +34,13 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                 message='Вы уже подписались на этого пользователя.'
             )
         ]
+
+    def validate(self, data):
+        if data['subscriber'] == data['target_user']:
+            raise serializers.ValidationError(
+                'Нельзя подписываться на себя.'
+            )
+        return data
 
     def to_representation(self, instance):
         if self.context['request'].method == 'POST':

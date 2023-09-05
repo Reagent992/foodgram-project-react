@@ -3,6 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.filters import FilterRecipeSet, FilterIngredientsSet
@@ -18,7 +19,8 @@ from api.serializers.api.tags import TagSerializer
 from api.viewsets_templates import (CreateDestroyViewSet,
                                     ListCreateDestroyViewSet)
 from recipes.models import (Recipe, Tag, Ingredients, FavoriteRecipe,
-                            Subscription, ShoppingCart)
+                            ShoppingCart)
+from users.models import Subscription
 
 
 class ShoppingCartViewSet(CreateDestroyViewSet):
@@ -66,6 +68,16 @@ class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def dispatch(self, request, *args, **kwargs):
+        # TODO: Удалить dispatch
+        res = super().dispatch(request, *args, **kwargs)
+
+        from django.db import connection
+        print('Количество запросов в БД:', len(connection.queries))
+        for q in connection.queries:
+            print('>>>>', q['sql'])
+        return res
+
 
 class FavoriteViewSet(CreateDestroyViewSet):
     """Добавление и Удаление из избранного."""
@@ -98,6 +110,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = FilterRecipeSet
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
+    permission_classes = [IsAuthenticatedOrReadOnly]  # TODO: написать свой.
 
     def perform_create(self, serializer):
         """Добавление автора при создании рецепта."""

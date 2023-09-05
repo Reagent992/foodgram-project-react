@@ -7,20 +7,20 @@ from api.views import (RecipesViewSet, TagViewSet,
                        ShoppingCartViewSet)
 
 v1_router = routers.DefaultRouter()
-v1_router.register("recipes",
-                   RecipesViewSet)
-v1_router.register(r"recipes/(?P<recipe_id>\d+)/favorite",
+v1_router.register(r'recipes/(?P<recipe_id>\d+)/favorite',
                    FavoriteViewSet)
-v1_router.register(r"recipes/(?P<recipe_id>\d+)/shopping_cart",
+v1_router.register(r'recipes/(?P<recipe_id>\d+)/shopping_cart',
                    ShoppingCartViewSet)
-v1_router.register("tags",
+v1_router.register('recipes',
+                   RecipesViewSet)
+v1_router.register('tags',
                    TagViewSet)
-v1_router.register("ingredients",
+v1_router.register('ingredients',
                    IngredientsViewSet)
-v1_router.register("users/subscriptions",
+v1_router.register('users/subscriptions',
                    ListCreateDestoySubscriptionViewSet,
                    basename='subscriptions')
-v1_router.register(r"users/(?P<target_user>\d+)/subscribe",
+v1_router.register(r'users/(?P<target_user>\d+)/subscribe',
                    ListCreateDestoySubscriptionViewSet,
                    basename='subscriptions')
 

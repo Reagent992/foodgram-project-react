@@ -7,17 +7,18 @@ User = get_user_model()
 
 class CustomUserCreateSerializer(UserCreateSerializer):
     """Сериализатор для регистрации пользователей."""
+    email = serializers.EmailField()
 
     class Meta:
         model = User
         fields = ('email', 'username', 'first_name', 'last_name', 'password',)
-
-        extra_kwargs = {'email': {'required': True, 'allow_blank': False},
-                        'username': {'required': True, 'allow_blank': False},
-                        'first_name': {'required': True, 'allow_blank': False},
-                        'last_name': {'required': True, 'allow_blank': False},
-                        'password': {'required': True, 'allow_blank': False},
-                        }
+        # TODO: Проверить, это наверно уже не нужно.
+        # extra_kwargs = {'email': {'required': True, 'allow_blank': False},
+        #                 'username': {'required': True, 'allow_blank': False},
+        #                 'first_name': {'required': True, 'allow_blank': False},
+        #                 'last_name': {'required': True, 'allow_blank': False},
+        #                 'password': {'required': True, 'allow_blank': False},
+        #                 }
 
 
 class CustomUserSerializer(UserSerializer):
@@ -45,5 +46,7 @@ class CustomUserSerializer(UserSerializer):
         print('--------------------------------------------------------------')
         # ---------------------------------------------------------------------
         requesting_user = self.context.get('request').user
-        return requesting_user.subscriptions.filter(
-            target_user=obj.id).exists()
+        if not requesting_user.is_anonymous:
+            return requesting_user.subscriptions.filter(
+                target_user=obj.id).exists()
+        return False

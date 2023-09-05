@@ -1,21 +1,26 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group, Permission
 from django.db.models import Count
 
-from recipes.models import (Tag, Recipe, Ingredients, Subscription,
+from recipes.models import (Tag, Recipe, Ingredients,
                             FavoriteRecipe, MeasurementUnit, ShoppingCart,
                             RecipeIngredients)
-
-User = get_user_model()
-
-admin.site.unregister(User)
+from users.models import User, Subscription
 
 admin.site.register(Subscription)
 admin.site.register(FavoriteRecipe)
 admin.site.register(MeasurementUnit)
 admin.site.register(ShoppingCart)
+
+
+@admin.register(User)
+class UserAdmin(UserAdmin):
+    """Пользователь."""
+    list_display = (
+        'username', 'email', 'first_name', 'last_name', 'is_staff',
+        'date_joined', 'last_login')
+
+    list_filter = ('email', 'username')
 
 
 class RecipeIngredientsInline(admin.TabularInline):
@@ -52,16 +57,6 @@ class RecipeAdmin(admin.ModelAdmin):
             faved_recipies=Count('recipes_added_to_favorite')
         )
         return queryset
-
-
-@admin.register(User)
-class UserAdmin(UserAdmin):
-    """Пользователь."""
-    list_display = (
-        'username', 'email', 'first_name', 'last_name', 'is_staff',
-        'date_joined', 'last_login')
-
-    list_filter = ('email', 'username')
 
 
 @admin.register(Ingredients)
