@@ -12,7 +12,7 @@ class HalfFieldsRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
-    """Сериализатор ингредиентов с дополнитльными полями."""
+    """Сериализатор ингредиентов с дополнительными полями."""
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all())
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(

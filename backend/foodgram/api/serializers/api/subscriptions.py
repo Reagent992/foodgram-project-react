@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
-from api.serializers.api.users import CustomUserSerializer
 from users.models import Subscription
 
 
@@ -20,7 +19,7 @@ class SubscriptionResponseSerializer(serializers.Serializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    """Создание и удалеине подписок."""
+    """Создание и удаление подписок."""
     subscriber = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
 
@@ -44,7 +43,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         if self.context['request'].method == 'POST':
-            serializer = CustomUserSerializer(
-                instance.target_user, context=self.context)
+            serializer = SubscriptionResponseSerializer(
+                instance, context=self.context)
             return serializer.data
         return super().to_representation(instance)

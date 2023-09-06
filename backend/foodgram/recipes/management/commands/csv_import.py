@@ -13,7 +13,7 @@ class Command(BaseCommand):
             'csv_file_path',
             nargs='?',
             type=str,
-            default='recipes\management\commands\ingredients.csv')
+            default='recipes/management/commands/ingredients.csv')
 
     def handle(self, *args, **options):
         csv_file_path = options['csv_file_path']
@@ -24,8 +24,7 @@ class Command(BaseCommand):
              """
             reader = csv.reader(csvfile)
             counter_ingredients = 0
-            counter_measurement_units = 0
-            measurement_unit_already_in_db = 0
+            counter_measurment_units = 0
             ingredient_already_in_db = 0
             errors_list = []
             for row in reader:
@@ -43,7 +42,7 @@ class Command(BaseCommand):
                             name=csv_file_measurment_unit
                         ))
                     if created_measurment_unit_status:
-                        counter_measurement_units += 1
+                        counter_measurment_units += 1
                 except Exception as e:
                     errors_list.append(f'Ошибка {e} на строке {row}')
 
@@ -67,7 +66,7 @@ class Command(BaseCommand):
                 f'Введено {counter_ingredients} ингредиентов'
             ))
             self.stdout.write(self.style.SUCCESS(
-                f'Введено {counter_measurement_units} единиц измерения'
+                f'Введено {counter_measurment_units} единиц измерения'
             ))
             self.stdout.write(self.style.WARNING(
                 f'{ingredient_already_in_db} '

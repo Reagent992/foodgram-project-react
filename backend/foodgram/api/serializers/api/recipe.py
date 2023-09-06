@@ -25,21 +25,27 @@ class RecipeListRetriveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'tags', 'cooking_time', 'text',
-                  'ingredients', 'author', 'image',
-                  "is_favorited", "is_in_shopping_cart",)
+                  'ingredients', 'author', 'image', 'is_favorited',
+                  'is_in_shopping_cart',)
 
-    def get_is_favorited(self, obj):
+    def get_is_favorited(self, recipe):
         """Проверка добавил ли автор этот рецепт в избранное."""
         requesting_user = self.context.get('request').user
         if not requesting_user.is_anonymous:
-            return requesting_user.favorite_recipes.filter(recipe=obj).exists()
+            favoriterecipe = self.context.get('favoriterecipe')
+            if favoriterecipe:
+                return any(
+                    fav_obj.recipe == recipe for fav_obj in favoriterecipe)
         return False
 
-    def get_is_in_shopping_cart(self, obj):
+    def get_is_in_shopping_cart(self, recipe):
         """Проверка добавлен ли рецепт в корзину."""
         requesting_user = self.context.get('request').user
         if not requesting_user.is_anonymous:
-            return requesting_user.shopping_cart.filter(recipe=obj).exists()
+            shoppingcart = self.context.get('shoppingcart')
+            if shoppingcart:
+                return any(
+                    cart.recipe == recipe for cart in shoppingcart)
         return False
 
 

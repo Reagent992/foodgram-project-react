@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 
 def email_validator(email):
-    """Проверка email на соотетсвие требованиям."""
+    """Проверка email на соответствие требованиям."""
     pattern = r"^[A-Z0-9+_.-]+@[A-Z0-9.-]+$"
     max_length = 150
     match = re.match(pattern, email, re.IGNORECASE)

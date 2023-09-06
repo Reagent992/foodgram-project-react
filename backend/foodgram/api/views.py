@@ -3,11 +3,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from api.filters import FilterRecipeSet, FilterIngredientsSet
-from api.permissions import TagsPermission
+from api.permissions import TagsPermission, RecipePermission
 from api.serializers.api.favorite import FavoriteRecipeSerializer
 from api.serializers.api.ingredients import IngredientsSerializer
 from api.serializers.api.recipe import (RecipeListRetriveSerializer,
@@ -46,9 +46,8 @@ class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
     """Подписки."""
 
     def get_queryset(self):
-        queryset = self.request.user.subscriptions.select_related(
-            'target_user').all()
-        return queryset.prefetch_related('target_user__recipe')
+        return self.request.user.subscriptions.select_related(
+            'target_user').prefetch_related('target_user__recipe').all()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -67,16 +66,6 @@ class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
             Subscription, subscriber=user, target_user=target_user)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def dispatch(self, request, *args, **kwargs):
-        # TODO: Удалить dispatch
-        res = super().dispatch(request, *args, **kwargs)
-
-        from django.db import connection
-        print('Количество запросов в БД:', len(connection.queries))
-        for q in connection.queries:
-            print('>>>>', q['sql'])
-        return res
 
 
 class FavoriteViewSet(CreateDestroyViewSet):
@@ -110,7 +99,23 @@ class RecipesViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = FilterRecipeSet
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
-    permission_classes = [IsAuthenticatedOrReadOnly]  # TODO: написать свой.
+    permission_classes = [RecipePermission]
+
+    def get_serializer_context(self):
+        """
+        Передача дополнительных queryset в сериализатор для оптимизации
+        запросов в БД.
+        """
+        if self.request.user.is_authenticated:
+            return {
+                'request': self.request,
+                'format': self.format_kwarg,
+                'view': self,
+                'subscriptions': self.request.user.subscriptions.all(),
+                'favoriterecipe': self.request.user.favorite_recipes.all(),
+                'shoppingcart': self.request.user.shopping_cart.all()
+            }
+        return super().get_serializer_context()
 
     def perform_create(self, serializer):
         """Добавление автора при создании рецепта."""
@@ -123,42 +128,33 @@ class RecipesViewSet(viewsets.ModelViewSet):
         else:
             return RecipeCreateEditSerializer
 
-    @action(methods=['get'], detail=False)
+    @action(methods=['get'], detail=False,
+            permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         """Загрузка списка покупок в виде txt-файла."""
+        user = request.user
         if request.method == 'GET':
-            user = request.user
             queryset = ShoppingCart.objects.filter(user=user).prefetch_related(
                 'recipe__recipeingredients__ingredient',
                 'recipe__recipeingredients__ingredient__measurement_unit'
             )
-            # Словарь ингредиент: количество
+            # Словарь {ингредиент: количество}.
             ingredients = dict()
             for shopping_cart_obj in queryset:
                 for item in shopping_cart_obj.recipe.recipeingredients.all():
-                    if ingredients.get(item.ingredient.name):
+                    if ingredients.get(item.ingredient):
                         ingredients[item.ingredient] += item.amount
                     else:
                         ingredients[item.ingredient] = item.amount
-            # Список Ингредиент - количество - единица измерения.
+            # Список [Ингредиент - количество - единица измерения].
             formatted_ingredients = [
-                f'{key.name} - {value}{key.measurement_unit.name}' for
-                key, value
-                in
-                ingredients.items()]
+                f'{ingredient.name} - '
+                f'{amount}{ingredient.measurement_unit.name}'
+                for
+                ingredient, amount in ingredients.items()]
 
             return HttpResponse('\n'.join(formatted_ingredients),
                                 content_type='text/plain')
-
-    def dispatch(self, request, *args, **kwargs):
-        # TODO: Удалить dispatch
-        res = super().dispatch(request, *args, **kwargs)
-
-        from django.db import connection
-        print('Количество запросов в БД:', len(connection.queries))
-        for q in connection.queries:
-            print('>>>>', q['sql'])
-        return res
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -176,3 +172,4 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = FilterIngredientsSet
     pagination_class = None
+    permission_classes = [AllowAny]
