@@ -1,7 +1,6 @@
+# flake8: noqa
 import os
 import re
-import sys
-from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
