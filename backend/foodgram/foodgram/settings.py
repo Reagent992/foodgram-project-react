@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 USE_POSTGRESQL = os.getenv('USE_POSTGRESQL', default='False')
 
-if sys.argv[0].find('pytest') or USE_POSTGRESQL is False:
+if USE_POSTGRESQL is False:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
