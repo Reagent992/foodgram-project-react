@@ -1,4 +1,3 @@
-# flake8: noqa
 import csv
 
 from django.core.management import BaseCommand
@@ -21,8 +20,8 @@ class Command(BaseCommand):
         with open(csv_file_path, encoding='UTF-8') as csvfile:
             """
             Скрипт добавления ингредиентов и
-             единиц измерения в БД из CSV-файла.
-             """
+            единиц измерения в БД из CSV-файла.
+            """
             reader = csv.reader(csvfile)
             counter_ingredients = 0
             counter_measurment_units = 0
