@@ -38,11 +38,3 @@ class CustomUserSerializer(UserSerializer):
                 return requesting_user.subscriptions.filter(
                     target_user=target_user.id).exists()
         return False
-
-    def to_representation(self, instance):
-        """Эндпоинт /api/users/me/ - пустой для анонимного пользователя."""
-        path = self.context.get('request').path
-        user = self.context.get('request').user
-        if path == '/api/users/me/' and user.is_anonymous:
-            return {}
-        return super().to_representation(instance)

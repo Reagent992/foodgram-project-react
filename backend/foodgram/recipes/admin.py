@@ -20,7 +20,7 @@ class UserAdmin(UserAdmin):
         'username', 'email', 'first_name', 'last_name', 'is_staff',
         'date_joined', 'last_login')
 
-    list_filter = ('email', 'username')
+    search_fields = ('email', 'username')
 
 
 class RecipeIngredientsInline(admin.TabularInline):
@@ -37,7 +37,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'author', 'recipes_added_to_favorite_count', 'pub_date')
     list_filter = 'author', 'name', 'tags'
-    search_fields = ('name', 'author',)
+    search_fields = ('name', 'author__username',)
     autocomplete_fields = ('author',)
     filter_horizontal = ('tags',)
 
@@ -50,8 +50,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """
-        Попытка оптимизации запроса в БД.
-        Кол-во запросов: 7 * на кол-во рецептов.
+        Оптимизация запроса в БД.
         """
         queryset = Recipe.objects.annotate(
             faved_recipies=Count('recipes_added_to_favorite')
@@ -72,4 +71,4 @@ class TagAdmin(admin.ModelAdmin):
     """Теги."""
     list_display = 'name', 'color', 'slug'
     list_filter = 'name', 'color'
-    search_fields = ('name__icontains',)
+    search_fields = ('name',)

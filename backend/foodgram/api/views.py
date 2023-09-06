@@ -16,8 +16,8 @@ from api.serializers.api.shopping_cart import ShoppingCartSerializer
 from api.serializers.api.subscriptions import (SubscriptionResponseSerializer,
                                                SubscriptionSerializer)
 from api.serializers.api.tags import TagSerializer
-from api.viewsets_templates import (CreateDestroyViewSet,
-                                    ListCreateDestroyViewSet)
+from api.mixins.mixins import (CreateDestroyViewSet,
+                               ListCreateDestroyViewSet)
 from recipes.models import (Recipe, Tag, Ingredients, FavoriteRecipe,
                             ShoppingCart)
 from users.models import Subscription
