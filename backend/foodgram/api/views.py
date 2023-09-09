@@ -47,7 +47,7 @@ class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
 
     def get_queryset(self):
         return self.request.user.subscriptions.select_related(
-            'target_user').prefetch_related('target_user__recipe').all()
+            'author').prefetch_related('author__recipe').all()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -55,15 +55,15 @@ class ListCreateDestoySubscriptionViewSet(ListCreateDestroyViewSet):
         return SubscriptionSerializer
 
     def create(self, request, *args, **kwargs):
-        recipe = self.kwargs.get('target_user')
-        request.data['target_user'] = recipe
+        recipe = self.kwargs.get('author')
+        request.data['author'] = recipe
         return super().create(request, *args, **kwargs)
 
     @action(methods=['delete'], detail=False)
-    def delete(self, request, target_user):
+    def delete(self, request, author):
         user = self.request.user
         instance = get_object_or_404(
-            Subscription, subscriber=user, target_user=target_user)
+            Subscription, subscriber=user, author=author)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

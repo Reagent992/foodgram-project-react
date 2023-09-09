@@ -20,7 +20,7 @@ v1_router.register('ingredients',
 v1_router.register('users/subscriptions',
                    ListCreateDestoySubscriptionViewSet,
                    basename='subscriptions')
-v1_router.register(r'users/(?P<target_user>\d+)/subscribe',
+v1_router.register(r'users/(?P<author>\d+)/subscribe',
                    ListCreateDestoySubscriptionViewSet,
                    basename='subscriptions')
 

@@ -8,6 +8,7 @@ User = get_user_model()
 
 class Tag(models.Model):
     """Теги."""
+
     name = models.CharField(max_length=200, null=False, verbose_name='Тег')
     color = ColorField(max_length=7)
     slug = models.SlugField(max_length=200, unique=True, null=True)
@@ -22,6 +23,7 @@ class Tag(models.Model):
 
 class MeasurementUnit(models.Model):
     """Единицы измерения."""
+
     name = models.CharField(max_length=200, verbose_name='Единица измерения')
 
     class Meta:
@@ -34,6 +36,7 @@ class MeasurementUnit(models.Model):
 
 class Ingredients(models.Model):
     """Ингредиенты."""
+
     name = models.CharField(
         max_length=200,
         verbose_name='Название ингредиента')
@@ -116,6 +119,7 @@ class Recipe(models.Model):
 
 class RecipeIngredients(models.Model):
     """Ингредиенты рецептов."""
+
     ingredient = models.ForeignKey(
         to=Ingredients,
         on_delete=models.CASCADE,
@@ -155,6 +159,7 @@ class RecipeIngredients(models.Model):
 
 class FavoriteRecipe(models.Model):
     """Любимые рецепты."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -186,6 +191,7 @@ class FavoriteRecipe(models.Model):
 
 class ShoppingCart(models.Model):
     """Список покупок."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

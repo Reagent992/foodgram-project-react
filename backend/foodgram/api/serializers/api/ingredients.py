@@ -5,6 +5,7 @@ from recipes.models import Ingredients
 
 class IngredientsSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиентов."""
+
     measurement_unit = serializers.ReadOnlyField(
         source='measurement_unit.name')
 

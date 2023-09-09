@@ -7,6 +7,7 @@ from recipes.models import FavoriteRecipe
 
 class FavoriteRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор добавления в избранное."""
+
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:

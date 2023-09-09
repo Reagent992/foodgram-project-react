@@ -30,6 +30,7 @@ class RecipeListRetriveSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, recipe):
         """Проверка добавил ли автор этот рецепт в избранное."""
+
         requesting_user = self.context.get('request').user
         if not requesting_user.is_anonymous:
             favoriterecipe = self.context.get('favoriterecipe')
@@ -40,6 +41,7 @@ class RecipeListRetriveSerializer(serializers.ModelSerializer):
 
     def get_is_in_shopping_cart(self, recipe):
         """Проверка добавлен ли рецепт в корзину."""
+
         requesting_user = self.context.get('request').user
         if not requesting_user.is_anonymous:
             shoppingcart = self.context.get('shoppingcart')
@@ -51,6 +53,7 @@ class RecipeListRetriveSerializer(serializers.ModelSerializer):
 
 class RecipeCreateEditSerializer(serializers.ModelSerializer):
     """Сериализатор для редактирования и создания рецептов."""
+
     image = Base64ImageFieldSerializer(required=True)
     ingredients = RecipeIngredientsSerializer(
         source='recipeingredients', many=True)
@@ -75,6 +78,7 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
     @atomic
     def create(self, validated_data):
         """Запись ингредиентов и тегов в рецепт."""
+
         ingredients = validated_data.pop('recipeingredients', False)
         tags = validated_data.pop('tags', False)
         recipe = Recipe.objects.create(**validated_data)
@@ -88,6 +92,7 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
     @atomic
     def update(self, instance: Recipe, validated_data):
         """Изменение рецепта."""
+
         instance.name = validated_data.pop('name', instance.name)
         instance.image = validated_data.pop('image', instance.image)
         instance.cooking_time = validated_data.pop(

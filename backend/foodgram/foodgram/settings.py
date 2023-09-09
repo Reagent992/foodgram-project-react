@@ -16,9 +16,9 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv('DEBUG', default=False)
 
-ALLOWED_HOSTS = re.split(r'\s*,\s*', os.getenv(
-    'ALLOWED_HOSTS',
-    default='["127.0.0.1", "localhost", "backend"]'))
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS',
+                          default='["127.0.0.1", "localhost", "backend"]'
+                          ).strip().split(', ')
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -42,7 +42,7 @@ LOCAL_APPS = [
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -74,16 +74,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-USE_POSTGRESQL = os.getenv('USE_POSTGRESQL', default='False')
+USE_POSTGRESQL = os.getenv('USE_POSTGRESQL', default='False') == 'True'
 
-if USE_POSTGRESQL is False:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-elif USE_POSTGRESQL:
+if USE_POSTGRESQL:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -92,6 +85,13 @@ elif USE_POSTGRESQL:
             'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
             'HOST': os.getenv('DB_HOST'),
             'PORT': os.getenv('DB_PORT')
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -141,13 +141,14 @@ DJOSER = {
     'SERIALIZERS': {
         'current_user': 'api.serializers.api.users.CustomUserSerializer',
         'user': 'api.serializers.api.users.CustomUserSerializer',
-        'user_create': 'api.serializers.api.users.CustomUserCreateSerializer',
     },
     'PERMISSIONS':
         {
-            'user': ['rest_framework.permissions.IsAuthenticated'],
-            'user_list': [
-                'rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+            'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+            'user_list': ['rest_framework.permissions.AllowAny'],
         },
     'HIDE_USERS': False,
 }
+# ------------------Constants--------------------------
+LENGTH_150 = 150
+EMAIL_LENGTH_254 = 254

@@ -1,17 +1,12 @@
-import re
-
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 
 
-def email_validator(email):
-    """Проверка email на соответствие требованиям."""
-    pattern = r"^[A-Z0-9+_.-]+@[A-Z0-9.-]+$"
-    max_length = 150
-    match = re.match(pattern, email, re.IGNORECASE)
-    if match is None or len(email) > max_length:
-        raise ValidationError(
-            "Используйте корректный адрес электронной почты. Адрес должен "
-            "быть не длиннее 150 символов."
-            "Допускается использование латинских букв, цифр и символов "
-            "@  .  +  -"
-        )
+def validate_username_me_restricted(username):
+    """Никнейм me - запрещен."""
+
+    if username.lower() == 'me':
+        raise ValidationError('Имя пользователя не может быть "me".')
+
+
+username_validator = UnicodeUsernameValidator()

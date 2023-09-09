@@ -7,6 +7,7 @@ from recipes.models import ShoppingCart
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
     """Добавление и удаление из Списка покупок."""
+
     user = serializers.HiddenField(
         default=serializers.CurrentUserDefault())
 

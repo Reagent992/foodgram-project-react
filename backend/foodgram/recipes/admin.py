@@ -16,6 +16,7 @@ admin.site.register(ShoppingCart)
 @admin.register(User)
 class UserAdmin(UserAdmin):
     """Пользователь."""
+
     list_display = (
         'username', 'email', 'first_name', 'last_name', 'is_staff',
         'date_joined', 'last_login')
@@ -32,6 +33,7 @@ class RecipeIngredientsInline(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     """Рецепт."""
+
     inlines = [RecipeIngredientsInline]
     readonly_fields = ('recipes_added_to_favorite_count',)
     list_display = (
@@ -61,6 +63,7 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(Ingredients)
 class IngredientsAdmin(admin.ModelAdmin):
     """Ингредиенты."""
+
     list_display = 'name', 'measurement_unit'
     list_filter = ('name',)
     search_fields = ('name',)
@@ -69,6 +72,7 @@ class IngredientsAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     """Теги."""
+
     list_display = 'name', 'color', 'slug'
     list_filter = 'name', 'color'
     search_fields = ('name',)

@@ -6,6 +6,7 @@ from recipes.models import Tag
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
+
     color = ColorField()
 
     class Meta:
