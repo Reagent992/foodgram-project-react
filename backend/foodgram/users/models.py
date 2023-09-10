@@ -1,9 +1,8 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.conf import settings
-
-from users.validators import (validate_username_me_restricted,
-                              username_validator)
+from users.validators import (username_validator,
+                              validate_username_me_restricted)
 
 
 class User(AbstractUser):

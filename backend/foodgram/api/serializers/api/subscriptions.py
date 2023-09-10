@@ -1,7 +1,6 @@
+from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-
-from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 from users.models import Subscription
 
 

@@ -1,8 +1,7 @@
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-
 from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 from recipes.models import FavoriteRecipe
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 
 class FavoriteRecipeSerializer(serializers.ModelSerializer):

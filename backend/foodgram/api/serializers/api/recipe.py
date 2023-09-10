@@ -1,13 +1,11 @@
-from django.contrib.auth import get_user_model
-from django.db.transaction import atomic
-from rest_framework import serializers
-
 from api.serializers.api.tags import TagSerializer
 from api.serializers.api.users import CustomUserSerializer
 from api.serializers.nested.base64 import Base64ImageFieldSerializer
-from api.serializers.nested.recipe import (RecipeIngredientsSerializer,
-                                           )
+from api.serializers.nested.recipe import RecipeIngredientsSerializer
+from django.contrib.auth import get_user_model
+from django.db.transaction import atomic
 from recipes.models import Recipe, RecipeIngredients
+from rest_framework import serializers
 
 User = get_user_model()
 

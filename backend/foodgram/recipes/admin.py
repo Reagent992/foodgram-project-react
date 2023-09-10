@@ -1,33 +1,34 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.db.models import Count
-
-from recipes.models import (Tag, Recipe, Ingredients,
-                            FavoriteRecipe, MeasurementUnit, ShoppingCart,
-                            RecipeIngredients)
-from users.models import User, Subscription
-
-admin.site.register(Subscription)
-admin.site.register(FavoriteRecipe)
-admin.site.register(MeasurementUnit)
-admin.site.register(ShoppingCart)
+from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from recipes.models import (FavoriteRecipe, Ingredients, Recipe,
+                            RecipeIngredients, ShoppingCart, Tag)
 
 
-@admin.register(User)
-class UserAdmin(UserAdmin):
-    """Пользователь."""
+@admin.register(FavoriteRecipe)
+class FavoriteRecipeAdmin(admin.ModelAdmin):
+    """Избранное."""
 
-    list_display = (
-        'username', 'email', 'first_name', 'last_name', 'is_staff',
-        'date_joined', 'last_login')
+    list_display = ('user', 'recipe', 'added_at')
+    search_fields = ('user', 'recipe')
 
-    search_fields = ('email', 'username')
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    """Избранное."""
+
+    list_display = ('user', 'recipe', 'added_at')
+    search_fields = ('user', 'recipe')
 
 
 class RecipeIngredientsInline(admin.TabularInline):
     model = RecipeIngredients
     extra = 1
+    min_num = 1
     autocomplete_fields = ('ingredient',)
+    verbose_name = 'Список ингредиентов'
+    verbose_name_plural = 'Список ингредиентов'
 
 
 @admin.register(Recipe)
@@ -37,27 +38,42 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = [RecipeIngredientsInline]
     readonly_fields = ('recipes_added_to_favorite_count',)
     list_display = (
-        'name', 'author', 'recipes_added_to_favorite_count', 'pub_date')
+        'name', 'author_link', 'ingredients_list',
+        'recipes_added_to_favorite_count', 'pub_date', 'image_tumbnail')
     list_filter = 'author', 'name', 'tags'
     search_fields = ('name', 'author__username',)
     autocomplete_fields = ('author',)
     filter_horizontal = ('tags',)
 
+    @admin.display(description='Картинка')
+    def image_tumbnail(self, obj):
+        return mark_safe(f'<img src={obj.image.url} width="80" height="60">')
+
+    @admin.display(description='Автор')
+    def author_link(self, obj):
+        """Поле автора - ссылка."""
+        link = reverse(
+            'admin:users_user_change', args=[obj.author.id]
+        )
+        return format_html('<a href="{}">{}</a>', link, obj.author)
+
+    @admin.display(description='Количество добавлений в избранное')
     def recipes_added_to_favorite_count(self, obj):
         """Подсчет кол-ва добавлений рецепта в избранное."""
-        return obj.faved_recipies
+        return obj.favoriterecipe_set.count()
 
-    recipes_added_to_favorite_count.short_description = (
-        'Количество добавлений в избранное')
+    @admin.display(description='Список ингредиентов')
+    def ingredients_list(self, obj):
+        return [ingredient.name for ingredient in obj.ingredients.all()]
 
     def get_queryset(self, request):
         """
         Оптимизация запроса в БД.
         """
-        queryset = Recipe.objects.annotate(
-            faved_recipies=Count('recipes_added_to_favorite')
+        # TODO: Проверить запроса.
+        return Recipe.objects.select_related('author').prefetch_related(
+            'tags', 'recipeingredients'
         )
-        return queryset
 
 
 @admin.register(Ingredients)

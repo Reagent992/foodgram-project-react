@@ -1,10 +1,8 @@
+from api.views import (FavoriteViewSet, IngredientsViewSet,
+                       ListCreateDestoySubscriptionViewSet, RecipesViewSet,
+                       ShoppingCartViewSet, TagViewSet)
 from django.urls import include, path
 from rest_framework import routers
-
-from api.views import (RecipesViewSet, TagViewSet,
-                       IngredientsViewSet, FavoriteViewSet,
-                       ListCreateDestoySubscriptionViewSet,
-                       ShoppingCartViewSet)
 
 v1_router = routers.DefaultRouter()
 v1_router.register(r'recipes/(?P<recipe_id>\d+)/favorite',

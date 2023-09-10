@@ -150,5 +150,10 @@ DJOSER = {
     'HIDE_USERS': False,
 }
 # ------------------Constants--------------------------
+LENGTH_1 = 1
+LENGTH_7 = 7
 LENGTH_150 = 150
+LENGTH_200 = 200
+LENGTH_1440 = 1440
+LENGTH_9999 = 9999
 EMAIL_LENGTH_254 = 254

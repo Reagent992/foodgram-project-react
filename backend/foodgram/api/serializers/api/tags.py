@@ -1,7 +1,6 @@
 from colorfield.serializers import ColorField
-from rest_framework import serializers
-
 from recipes.models import Tag
+from rest_framework import serializers
 
 
 class TagSerializer(serializers.ModelSerializer):

@@ -1,6 +1,5 @@
+from recipes.models import Ingredients, Recipe, RecipeIngredients
 from rest_framework import serializers
-
-from recipes.models import Recipe, RecipeIngredients, Ingredients
 
 
 class HalfFieldsRecipeSerializer(serializers.ModelSerializer):
