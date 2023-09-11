@@ -1,14 +1,10 @@
-from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
+from api.serializers.iternal.AbstractSerializers import AbstracsSerializer
 from recipes.models import ShoppingCart
-from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 
-class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Добавление и удаление из Списка покупок."""
-
-    user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault())
+class ShoppingCartSerializer(AbstracsSerializer):
+    """Добавление в Список покупок."""
 
     class Meta:
         model = ShoppingCart
@@ -20,10 +16,3 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
                 message='Вы уже добавили этот рецепт в список покупок.'
             )
         ]
-
-    def to_representation(self, instance):
-        if self.context['request'].method == 'POST':
-            serializer = HalfFieldsRecipeSerializer(
-                instance.recipe, context=self.context)
-            return serializer.data
-        return super().to_representation(instance)

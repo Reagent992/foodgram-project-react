@@ -1,13 +1,10 @@
-from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
+from api.serializers.iternal.AbstractSerializers import AbstracsSerializer
 from recipes.models import FavoriteRecipe
-from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 
-class FavoriteRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор добавления в избранное."""
-
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+class FavoriteRecipeSerializer(AbstracsSerializer):
+    """Добавление в избранное."""
 
     class Meta:
         model = FavoriteRecipe
@@ -19,9 +16,3 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
                 message='Уже добавлено в избранное'
             )
         ]
-
-    def to_representation(self, instance):
-        if self.context['request'].method == 'POST':
-            serializer = HalfFieldsRecipeSerializer(instance.recipe)
-            return serializer.data
-        return super().to_representation(instance)
