@@ -1,12 +1,10 @@
-from colorfield.serializers import ColorField
-from recipes.models import Tag
 from rest_framework import serializers
+
+from recipes.models import Tag
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор для тегов."""
-
-    color = ColorField()
+    """Сериализатор для просмотра тегов."""
 
     class Meta:
         model = Tag

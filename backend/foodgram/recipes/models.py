@@ -2,6 +2,7 @@ from colorfield.fields import ColorField
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from recipes.abstract_models import AbstractModel
 from users.models import User
 
@@ -162,7 +163,7 @@ class FavoriteRecipe(AbstractModel):
     class Meta:
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
-        ordering = ('added_at',)
+        ordering = ('-added_at',)
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'recipe'),
@@ -180,7 +181,7 @@ class ShoppingCart(AbstractModel):
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
-        ordering = ('added_at',)
+        ordering = ('-added_at',)
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'recipe'),

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
 from users.validators import (username_validator,
                               validate_username_me_restricted)
 
@@ -34,7 +35,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
 
     class Meta:
-        ordering = ('username',)
+        ordering = ('-date_joined',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -63,7 +64,7 @@ class Subscription(models.Model):
     )
 
     class Meta:
-        ordering = ('created_at',)
+        ordering = ('-created_at',)
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = (

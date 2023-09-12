@@ -1,16 +1,36 @@
+from django.db.models import Exists, F, OuterRef
+from django.http import FileResponse
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from api.filters import FilterRecipeSet
 from api.permissions import RecipePermission
 from api.serializers.api.favorite import FavoriteRecipeSerializer
 from api.serializers.api.recipe import (RecipeCreateEditSerializer,
                                         RecipeListRetriveSerializer)
 from api.serializers.api.shopping_cart import ShoppingCartSerializer
-from django.http import HttpResponse
-from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import FavoriteRecipe, Recipe, ShoppingCart
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+
+
+def combine_ingredients(queryset):
+    """Сложение повторяющихся ингредиентов."""
+
+    ingredients = dict()
+    for item in queryset:
+        if ingredients.get(item.get('ingredient')):
+            ingredients[item.get('ingredient')]['amount'] += item.get('amount')
+        else:
+            ingredients[item.get('ingredient')] = {
+                'measurement_unit': item.get('measurement_unit'),
+                'amount': item.get('amount')}
+    return [
+        f'{key} - {value.get("amount")}{value.get("measurement_unit")}'
+        for
+        key, value in ingredients.items()
+    ]
 
 
 def create_obj(serializer, request, pk):
@@ -21,7 +41,6 @@ def create_obj(serializer, request, pk):
         'recipe': pk,
     }
     serializer_instance = serializer(data=data)
-
     if serializer_instance.is_valid():
         serializer_instance.save()
         return Response(serializer_instance.data,
@@ -31,6 +50,8 @@ def create_obj(serializer, request, pk):
 
 
 def delete_obj(model, request, pk):
+    """Удаление из покупок и избранного."""
+
     user = request.user
     try:
         instance = model.objects.get(user=user, recipe=pk)
@@ -45,18 +66,35 @@ def delete_obj(model, request, pk):
 class RecipesViewSet(viewsets.ModelViewSet):
     """Рецепты."""
 
-    queryset = Recipe.objects.prefetch_related(
-        'recipeingredients__ingredient', 'tags',
-    ).select_related(
-        'author',
-    ).all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = FilterRecipeSet
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
     permission_classes = (RecipePermission,)
 
+    def get_queryset(self):
+        """Получение queryset и оптимизация запроса в БД."""
+
+        user = self.request.user
+        queyset = Recipe.objects.prefetch_related(
+            'recipeingredients__ingredient', 'tags',
+        ).select_related(
+            'author',
+        ).all()
+        if user.is_authenticated:
+            return queyset.annotate(
+                is_fav=Exists(FavoriteRecipe.objects.filter(
+                    user=user, recipe=OuterRef('pk'))),
+                in_cart=Exists(ShoppingCart.objects.filter(
+                    user=user, recipe=OuterRef('pk'))),
+                # TODO: Подписки в сериализаторе пользователя
+                #  все еще делают лишние запросы.
+            )
+
+        return queyset
+
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от запроса."""
+
         if self.action in ['list', 'retrieve']:
             return RecipeListRetriveSerializer
         return RecipeCreateEditSerializer
@@ -93,25 +131,10 @@ class RecipesViewSet(viewsets.ModelViewSet):
         """Загрузка списка покупок в виде txt-файла."""
 
         user = request.user
-        if request.method == 'GET':
-            queryset = ShoppingCart.objects.filter(user=user).prefetch_related(
-                'recipe__recipeingredients__ingredient',
-                'recipe__recipeingredients__ingredient__measurement_unit'
-            )
-            # Словарь {ингредиент: количество}.
-            ingredients = dict()
-            for shopping_cart_obj in queryset:
-                for item in shopping_cart_obj.recipe.recipeingredients.all():
-                    if ingredients.get(item.ingredient):
-                        ingredients[item.ingredient] += item.amount
-                    else:
-                        ingredients[item.ingredient] = item.amount
-            # Список [Ингредиент - количество - единица измерения].
-            formatted_ingredients = [
-                f'{ingredient.name} - '
-                f'{amount}{ingredient.measurement_unit.name}'
-                for
-                ingredient, amount in ingredients.items()]
+        ingredients = user.shoppingcart_set.all().values(
+            ingredient=F('recipe__ingredients__name'),
+            amount=F('recipe__recipeingredients__amount'),
+            measurement_unit=F('recipe__ingredients__measurement_unit'))
+        result = '\n'.join(combine_ingredients(ingredients))
 
-            return HttpResponse('\n'.join(formatted_ingredients),
-                                content_type='text/plain')
+        return FileResponse(result)

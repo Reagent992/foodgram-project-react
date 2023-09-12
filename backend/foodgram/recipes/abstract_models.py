@@ -1,4 +1,5 @@
 from django.db import models
+
 from users.models import User
 
 
@@ -15,11 +16,4 @@ class AbstractModel(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('added_at',)
-        constraints = (
-            models.UniqueConstraint(
-                fields=('user', 'recipe'),
-                name='%(app_label)s_%(class)s_unique_relationships'
-            ),
-        )
         abstract = True

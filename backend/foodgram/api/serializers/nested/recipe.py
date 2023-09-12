@@ -1,5 +1,6 @@
-from recipes.models import Ingredients, Recipe, RecipeIngredients
 from rest_framework import serializers
+
+from recipes.models import Ingredients, Recipe, RecipeIngredients
 
 
 class HalfFieldsRecipeSerializer(serializers.ModelSerializer):
@@ -11,12 +12,14 @@ class HalfFieldsRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
-    """Сериализатор ингредиентов с дополнительными полями."""
+    """
+    Сериализатор ингредиентов для просмотра рецептов с дополнительными полями.
+    """
 
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all())
+    id = serializers.ReadOnlyField(source='ingredient.pk')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit.name')
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = RecipeIngredients
@@ -24,10 +27,13 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
 
 
 class HalfIngredientsSerializer(serializers.ModelSerializer):
-    """Сериализатор для записи рецепта."""
+    """Сериализатор для записи игредиентов в рецепт."""
 
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all())
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = RecipeIngredients
-        fields = ('id', 'amount')
+        fields = ('id', 'amount', 'name', 'measurement_unit')
