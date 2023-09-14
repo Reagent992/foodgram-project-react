@@ -1,4 +1,5 @@
 # Foodgram, Дипломный проект [Яндекс Практикум](https://practicum.yandex.ru/backend-developer/).
+![GitHub Actions](https://github.com/Reagent992/foodgram-project-react/actions/workflows/main.yml/badge.svg)
 
 ## Информация для проерки проекта:
 

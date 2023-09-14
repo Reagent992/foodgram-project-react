@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+
 from recipes.models import (FavoriteRecipe, Ingredients, Recipe,
                             RecipeIngredients, ShoppingCart, Tag)
 
@@ -70,7 +71,6 @@ class RecipeAdmin(admin.ModelAdmin):
         """
         Оптимизация запроса в БД.
         """
-        # TODO: Проверить запроса.
         return Recipe.objects.select_related('author').prefetch_related(
             'tags', 'recipeingredients'
         )
