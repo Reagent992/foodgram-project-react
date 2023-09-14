@@ -131,9 +131,6 @@ dmypy.json
 # .idea
 .idea
 
-/backend/foodgram/recipes/migrations/
+
 /backend/foodgram/media/
 /backend/foodgram/collected_static/
-/backend/foodgram/users/migrations/
-
-setup.cfg
