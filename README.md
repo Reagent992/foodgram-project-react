@@ -10,7 +10,6 @@
 | username  | password  | email                   |
 |-----------|-----------|-------------------------|
 | superuser | superuser | superuser@superuser.com |
-| admin     | admin     | admin@admin.com         |
 | auth_user | Asdfgh992 | auth_user@gmail.com     |
 
 ## Проект представляет собой платформу для публикации кулинарных рецептов.
@@ -47,8 +46,7 @@
 docker compose up
 ```
 
-* Запустить backend сервер
-  manage.py находится в backend/foodgram
+* Запустить backend сервер(manage.py находится в backend/foodgram)
 
 ```commandline
  python manage.py runserver
@@ -56,11 +54,7 @@ docker compose up
 
 ## managment-команды:
 
-### 1. Добавление ингредиентов и единиц измерения в БД.
-
-##### Скрипт находится в
-
-`recipes/management/commands/csv_import.py`
+### Добавление тегов, ингредиентов и единиц измерения в БД.
 
 ##### Запуск:
 
@@ -68,24 +62,5 @@ docker compose up
 python manage.py csv_import
 ```
 
-###### Передача CSV-файла:
-
-```commandline
-python manage.py csv_import /path_to_file/file.csv
-```
-
-Ожидаемая форма csv файла:
-
-```text
-абрикосовое варенье,г
-абрикосовое пюре,г
-абрикосовый джем,г
-```
-
-### 2. Создание группы с правами "admin".
-
-##### Запуск:
-
-```commandline
-python manage.py create_admin_group
-```
+### Автор:
+* [Miron Sadykov](https://github.com/Reagent992)
