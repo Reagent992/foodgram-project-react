@@ -26,11 +26,12 @@ def combine_ingredients(queryset):
             ingredients[item.get('ingredient')] = {
                 'measurement_unit': item.get('measurement_unit'),
                 'amount': item.get('amount')}
-    return [
-        f'{key} - {value.get("amount")}{value.get("measurement_unit")}'
+    result = [
+        f'{key} - {value.get("amount")} {value.get("measurement_unit")}'
         for
         key, value in ingredients.items()
     ]
+    return '\n'.join(result)
 
 
 def create_obj(serializer, request, pk):
@@ -58,7 +59,6 @@ def delete_obj(model, request, pk):
     except model.DoesNotExist:
         return Response({'errors': 'Этой записи не существует'},
                         status=status.HTTP_400_BAD_REQUEST)
-
     instance.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -75,22 +75,19 @@ class RecipesViewSet(viewsets.ModelViewSet):
         """Получение queryset и оптимизация запроса в БД."""
 
         user = self.request.user
-        queyset = Recipe.objects.prefetch_related(
+        queryset = Recipe.objects.prefetch_related(
             'recipeingredients__ingredient', 'tags',
         ).select_related(
-            'author',
+            'author'
         ).all()
         if user.is_authenticated:
-            return queyset.annotate(
-                is_fav=Exists(FavoriteRecipe.objects.filter(
-                    user=user, recipe=OuterRef('pk'))),
-                in_cart=Exists(ShoppingCart.objects.filter(
-                    user=user, recipe=OuterRef('pk'))),
-                # TODO: Подписки в сериализаторе пользователя
-                #  все еще делают лишние запросы.
+            return queryset.annotate(
+                is_fav=Exists(user.favoriterecipe_set.filter(
+                    recipe=OuterRef('pk'))),
+                in_cart=Exists(user.shoppingcart_set.filter(
+                    recipe=OuterRef('pk'))),
             )
-
-        return queyset
+        return queryset
 
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от запроса."""
@@ -135,6 +132,5 @@ class RecipesViewSet(viewsets.ModelViewSet):
             ingredient=F('recipe__ingredients__name'),
             amount=F('recipe__recipeingredients__amount'),
             measurement_unit=F('recipe__ingredients__measurement_unit'))
-        result = '\n'.join(combine_ingredients(ingredients))
-
-        return FileResponse(result)
+        return FileResponse(combine_ingredients(ingredients),
+                            content_type='text/plain')

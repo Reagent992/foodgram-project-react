@@ -27,9 +27,10 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
 
 
 class HalfIngredientsSerializer(serializers.ModelSerializer):
-    """Сериализатор для записи игредиентов в рецепт."""
+    """Сериализатор для записи ингредиентов в рецепт."""
 
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all())
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient', queryset=Ingredients.objects.all())
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit')
@@ -37,3 +38,4 @@ class HalfIngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredients
         fields = ('id', 'amount', 'name', 'measurement_unit')
+        read_only_fields = ('name', 'measurement_unit')

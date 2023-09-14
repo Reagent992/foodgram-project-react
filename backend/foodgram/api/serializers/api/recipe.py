@@ -10,10 +10,12 @@ from recipes.models import Recipe, RecipeIngredients, Tag
 
 
 def create_ingredients(ingredients, recipe):
+    """Добавление ингредиентов рецепта в промежуточную модель."""
+
     recipe_ingredients_to_create = []
     for ingredient in ingredients:
         amount = ingredient.pop('amount', False)
-        new_ingredient = ingredient.pop('id', False)
+        new_ingredient = ingredient.pop('ingredient', False)
         if amount and new_ingredient:
             recipe_ingredients_to_create.append(
                 RecipeIngredients(
@@ -21,7 +23,7 @@ def create_ingredients(ingredients, recipe):
                     ingredient=new_ingredient,
                     amount=amount
                 ))
-    RecipeIngredients.objects.bulk_create(recipe_ingredients_to_create)
+    return RecipeIngredients.objects.bulk_create(recipe_ingredients_to_create)
 
 
 class RecipeListRetriveSerializer(serializers.ModelSerializer):
@@ -57,12 +59,9 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
     """Сериализатор для редактирования и создания рецептов."""
 
     image = Base64ImageField(required=True)
-    # TODO: с id ингредиентов ошибка(
-    #  добавляются правильные, а выводятся другие id,
-    #  из таблицы Recipeingredients)
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     ingredients = HalfIngredientsSerializer(
         source='recipeingredients', many=True)
-    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all())
@@ -92,11 +91,11 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
 
         unique_ingredients = set()
         for ingredient in ingredients:
-            ingredient_id = ingredient.get('id')
-            if ingredient_id in unique_ingredients:
+            ingredient_obj = ingredient.get('ingredient')
+            if ingredient_obj in unique_ingredients:
                 raise serializers.ValidationError(
                     "Список ингредиентов не может содержать дубликаты.")
-            unique_ingredients.add(ingredient_id)
+            unique_ingredients.add(ingredient_obj)
         return ingredients
 
     def validate_image(self, image):
@@ -104,7 +103,7 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
 
         if not image:
             raise serializers.ValidationError(
-                "Нельзя отправиль рецепт без картинки.")
+                "Нельзя отправить рецепт без картинки.")
         return image
 
     @atomic
@@ -129,9 +128,3 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
         instance.tags.set(new_tags)
         super().update(instance, validated_data)
         return instance
-
-    # def to_representation(self, instance):
-    #     self.context
-    #     request = self.context.get('request')
-    #     context = {'request': request}
-    #     return RecipeListRetriveSerializer(instance, context=context).data

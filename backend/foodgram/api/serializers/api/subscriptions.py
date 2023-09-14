@@ -1,28 +1,36 @@
-from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+
+from api.serializers.api.users import CustomUserSerializer
+from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 from users.models import Subscription
 
 
-class SubscriptionResponseSerializer(serializers.Serializer):
+class SubscriptionResponseSerializer(CustomUserSerializer):
     """Вывод списка подписок."""
 
-    email = serializers.EmailField(source='author.email')
-    id = serializers.IntegerField(source='author.id')
-    username = serializers.CharField(source='author.username')
-    first_name = serializers.CharField(source='author.first_name')
-    last_name = serializers.CharField(source='author.last_name')
-    is_subscribed = serializers.BooleanField(source='author')
-    recipes = HalfFieldsRecipeSerializer(source='author.recipe.all',
-                                         many=True)
-    recipes_count = serializers.IntegerField(source='author.recipe.count')
+    recipes_count = serializers.IntegerField(source='recipe.count')
+    recipes = serializers.SerializerMethodField()
+
+    class Meta(CustomUserSerializer.Meta):
+        fields = CustomUserSerializer.Meta.fields + (
+            'recipes', 'recipes_count')
+
+    def get_recipes(self, user):
+        """
+        Список рецептов, с заданным ограничением на количество рецептов.
+        """
+
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        queryset = user.recipe.all()
+        if limit:
+            queryset = queryset[:int(limit)]
+        return HalfFieldsRecipeSerializer(queryset, many=True).data
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     """Создание и удаление подписок."""
-
-    subscriber = serializers.HiddenField(
-        default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Subscription
@@ -43,8 +51,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        if self.context['request'].method == 'POST':
-            serializer = SubscriptionResponseSerializer(
-                instance, context=self.context)
-            return serializer.data
-        return super().to_representation(instance)
+        serializer = SubscriptionResponseSerializer(
+            instance.author, context=self.context)
+        return serializer.data

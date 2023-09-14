@@ -1,8 +1,9 @@
-from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 from rest_framework import serializers
 
+from api.serializers.nested.recipe import HalfFieldsRecipeSerializer
 
-class AbstracsSerializer(serializers.ModelSerializer):
+
+class AbstractSerializer(serializers.ModelSerializer):
     """Абстрактный сериализатор для Покупок и избранного."""
 
     class Meta:

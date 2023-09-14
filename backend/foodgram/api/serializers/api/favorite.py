@@ -1,9 +1,10 @@
-from api.serializers.iternal.AbstractSerializers import AbstracsSerializer
-from recipes.models import FavoriteRecipe
 from rest_framework.validators import UniqueTogetherValidator
 
+from api.serializers.iternal.AbstractSerializers import AbstractSerializer
+from recipes.models import FavoriteRecipe
 
-class FavoriteRecipeSerializer(AbstracsSerializer):
+
+class FavoriteRecipeSerializer(AbstractSerializer):
     """Добавление в избранное."""
 
     class Meta:
