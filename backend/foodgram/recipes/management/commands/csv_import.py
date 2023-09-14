@@ -16,7 +16,7 @@ def read(file_path):
             for row in csv.reader(csvfile):
                 tags.append(row)
     except FileNotFoundError:
-        print(f"Файл не найден по пути {file_path}")
+        raise FileNotFoundError(f"Файл не найден по пути {file_path}")
 
     return tags
 
@@ -57,9 +57,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         ingredients_csv_file_path = os.path.join(
-            settings.BASE_DIR.parent, 'data/ingredients.csv')
+            settings.BASE_DIR, 'data/ingredients.csv')
         tags_csv_file_path = os.path.join(
-            settings.BASE_DIR.parent, 'data/tags.csv')
+            settings.BASE_DIR, 'data/tags.csv')
         ingredients_array = read(ingredients_csv_file_path)
         tags_array = read(tags_csv_file_path)
         ingredients_write_result = write_ingredients(ingredients_array)
