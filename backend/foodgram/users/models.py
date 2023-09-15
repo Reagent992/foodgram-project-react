@@ -10,20 +10,20 @@ class User(AbstractUser):
     """Пользователи."""
 
     email = models.EmailField(
-        max_length=settings.EMAIL_LENGTH_254,
+        max_length=settings.EMAIL_LENGTH,
         unique=True,
         verbose_name='Электронная почта')
     username = models.CharField(
-        max_length=settings.LENGTH_150,
+        max_length=settings.USERNAME_LENGTH,
         verbose_name='Имя пользователя',
         unique=True,
         validators=(validate_username_me_restricted, username_validator)
     )
     first_name = models.CharField(
-        max_length=settings.LENGTH_150,
+        max_length=settings.FIRST_NAME_LENGHT,
         verbose_name='Имя')
     last_name = models.CharField(
-        max_length=settings.LENGTH_150,
+        max_length=settings.LAST_NAME_LENGHT,
         verbose_name='Фамилия')
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name')

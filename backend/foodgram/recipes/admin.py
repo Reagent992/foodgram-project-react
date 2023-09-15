@@ -24,6 +24,8 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 
 
 class RecipeIngredientsInline(admin.TabularInline):
+    """Ряд с ингредиентами."""
+
     model = RecipeIngredients
     extra = 1
     min_num = 1
@@ -48,7 +50,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Картинка')
     def image_tumbnail(self, recipe):
-        return mark_safe(f'<img src={recipe.image.url} width="80" height="60">')
+        """Поле с иконкой картинки."""
+
+        return mark_safe(
+            f'<img src={recipe.image.url} width="80" height="60">')
 
     @admin.display(description='Автор')
     def author_link(self, recipe):

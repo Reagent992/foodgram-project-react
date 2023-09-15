@@ -12,17 +12,17 @@ class Tag(models.Model):
 
     name = models.CharField(
         'Тег',
-        max_length=settings.LENGTH_200,
+        max_length=settings.TAG_NAME_LENGTH,
         unique=True
     )
     color = ColorField(
         'Hex-Цвет',
-        max_length=settings.LENGTH_7,
+        max_length=settings.TAG_COLOR_LENGTH,
         unique=True
     )
     slug = models.SlugField(
         'Текстовый идентификатор страницы',
-        max_length=settings.LENGTH_200,
+        max_length=settings.TAG_SLUG_LENGTH,
         unique=True
     )
 
@@ -39,11 +39,11 @@ class Ingredients(models.Model):
 
     name = models.CharField(
         'Название ингредиента',
-        max_length=settings.LENGTH_200
+        max_length=settings.INGREDIENT_NAME_LENGTH
     )
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=settings.LENGTH_200
+        max_length=settings.MEASUREMENT_UNIT_LENGTH
     )
 
     class Meta:
@@ -90,13 +90,13 @@ class Recipe(models.Model):
         'Время приготовления',
         validators=[
             MinValueValidator(
-                limit_value=settings.LENGTH_1,
+                limit_value=settings.MIN_COOKING_TIME,
                 message=f'Время приготовления не может быть меньше:'
-                        f'{settings.LENGTH_1}'),
+                        f'{settings.MIN_COOKING_TIME}'),
             MaxValueValidator(
-                limit_value=settings.LENGTH_1440,
+                limit_value=settings.MAX_COOKING_TIME,
                 message=f'Время приготовления не может быть больше:'
-                        f'{settings.LENGTH_1440}')
+                        f'{settings.MAX_COOKING_TIME}')
         ]
     )
     text = models.TextField(blank=False, verbose_name='Описание рецепта')
@@ -133,14 +133,15 @@ class RecipeIngredients(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         'Количество',
-        validators=(MinValueValidator(
-            limit_value=settings.LENGTH_1,
-            message=f'Количество не может быть меньше {settings.LENGTH_1}.'),
+        validators=(
+            MinValueValidator(
+                limit_value=settings.MIN_AMOUNT,
+                message=f'Количество не может быть меньше:'
+                        f'{settings.MIN_AMOUNT}.'),
             MaxValueValidator(
-                limit_value=settings.LENGTH_9999,
+                limit_value=settings.MAX_AMOUNT,
                 message=f'Количество не может быть больше:'
-                        f'{settings.LENGTH_9999}.'
-        )
+                        f'{settings.MAX_AMOUNT}.')
         ),
     )
 

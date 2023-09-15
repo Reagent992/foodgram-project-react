@@ -37,28 +37,25 @@ class UserViewSet(UserViewSetDjoser):
             permission_classes=(IsAuthenticated,))
     def subscribe(self, request, id):
         """Подписка на пользователя."""
+
         data = {
             'subscriber': request.user.id,
             'author': id,
         }
         serializer = SubscriptionSerializer(
             data=data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
         """Отписаться от пользователя."""
 
         user = request.user
-        try:
-            instance = Subscription.objects.get(subscriber=user, author=id)
-        except Subscription.DoesNotExist:
-            return Response({'errors': 'Этой записи не существует'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        instance = Subscription.objects.filter(subscriber=user, author=id)
+        if instance:
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'errors': 'Этой записи не существует'},
+                        status=status.HTTP_400_BAD_REQUEST)
