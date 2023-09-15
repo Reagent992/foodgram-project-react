@@ -160,16 +160,10 @@ class RecipeIngredients(models.Model):
 class FavoriteRecipe(AbstractModel):
     """Любимые рецепты."""
 
-    class Meta:
+    class Meta(AbstractModel.Meta):
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
-        ordering = ('-added_at',)
-        constraints = (
-            models.UniqueConstraint(
-                fields=('user', 'recipe'),
-                name='%(app_label)s_%(class)s_unique_relationships'
-            ),
-        )
+        default_related_name = 'favoriterecipe'
 
     def __str__(self):
         return f'{self.user} добавил в избранное {self.recipe}'
@@ -178,16 +172,10 @@ class FavoriteRecipe(AbstractModel):
 class ShoppingCart(AbstractModel):
     """Список покупок."""
 
-    class Meta:
+    class Meta(AbstractModel.Meta):
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
-        ordering = ('-added_at',)
-        constraints = (
-            models.UniqueConstraint(
-                fields=('user', 'recipe'),
-                name='%(app_label)s_%(class)s_unique_relationships'
-            ),
-        )
+        default_related_name = 'shoppingcart'
 
     def __str__(self):
         return f'{self.user} добавил в корзину {self.recipe}'

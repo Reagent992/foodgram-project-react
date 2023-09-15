@@ -17,3 +17,10 @@ class AbstractModel(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ('-added_at',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='%(app_label)s_%(class)s_unique_relationships'
+            ),
+        )

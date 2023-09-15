@@ -47,32 +47,37 @@ class RecipeAdmin(admin.ModelAdmin):
     filter_horizontal = ('tags',)
 
     @admin.display(description='Картинка')
-    def image_tumbnail(self, obj):
-        return mark_safe(f'<img src={obj.image.url} width="80" height="60">')
+    def image_tumbnail(self, recipe):
+        return mark_safe(f'<img src={recipe.image.url} width="80" height="60">')
 
     @admin.display(description='Автор')
-    def author_link(self, obj):
-        """Поле автора - ссылка."""
-        link = reverse(
-            'admin:users_user_change', args=[obj.author.id]
-        )
-        return format_html('<a href="{}">{}</a>', link, obj.author)
+    def author_link(self, recipe):
+        """Поле автора - ссылка на пользователя."""
 
-    @admin.display(description='Количество добавлений в избранное')
-    def recipes_added_to_favorite_count(self, obj):
+        link = reverse(
+            'admin:users_user_change', args=[recipe.author.id]
+        )
+        return format_html('<a href="{}">{}</a>', link, recipe.author)
+
+    @admin.display(description='В избранном')
+    def recipes_added_to_favorite_count(self, recipe):
         """Подсчет кол-ва добавлений рецепта в избранное."""
-        return obj.favoriterecipe_set.count()
+
+        return recipe.favoriterecipe.count()
 
     @admin.display(description='Список ингредиентов')
-    def ingredients_list(self, obj):
-        return [ingredient.name for ingredient in obj.ingredients.all()]
+    def ingredients_list(self, recipe):
+        """Список ингредиентов рецепта."""
+
+        return [ingredient.name for ingredient in recipe.ingredients.all()]
 
     def get_queryset(self, request):
         """
         Оптимизация запроса в БД.
         """
+
         return Recipe.objects.select_related('author').prefetch_related(
-            'tags', 'recipeingredients'
+            'tags', 'ingredients'
         )
 
 

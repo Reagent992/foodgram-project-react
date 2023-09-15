@@ -25,17 +25,11 @@ class User(AbstractUser):
     last_name = models.CharField(
         max_length=settings.LENGTH_150,
         verbose_name='Фамилия')
-    subscription = models.ManyToManyField(
-        to='self',
-        through='Subscription',
-        related_name="following",
-        symmetrical=False,
-    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
 
     class Meta:
-        ordering = ('-date_joined',)
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -73,7 +67,7 @@ class Subscription(models.Model):
                 name='%(app_label)s_%(class)s_unique_relationships'
             ),
             models.CheckConstraint(
-                name="%(app_label)s_%(class)s_prevent_self_follow",
+                name='%(app_label)s_%(class)s_prevent_self_follow',
                 check=~models.Q(subscriber=models.F("author")),
             ),
         )

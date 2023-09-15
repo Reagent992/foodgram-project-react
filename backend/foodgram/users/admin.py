@@ -13,9 +13,20 @@ class UserAdmin(BaseUserAdmin):
 
     list_display = (
         'username', 'email', 'first_name', 'last_name', 'is_staff',
-        'last_login')
-
+        'last_login', 'subscribers', 'recipes')
     search_fields = ('email', 'username')
+
+    @admin.display(description='Подписчиков')
+    def subscribers(self, user):
+        """Количество подписчиков."""
+
+        return user.author.count()
+
+    @admin.display(description='Рецептов')
+    def recipes(self, user):
+        """Количество рецептов."""
+
+        return user.recipe.count()
 
 
 @admin.register(Subscription)

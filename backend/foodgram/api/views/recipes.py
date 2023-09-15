@@ -82,9 +82,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
         ).all()
         if user.is_authenticated:
             return queryset.annotate(
-                is_fav=Exists(user.favoriterecipe_set.filter(
+                is_fav=Exists(user.favoriterecipe.filter(
                     recipe=OuterRef('pk'))),
-                in_cart=Exists(user.shoppingcart_set.filter(
+                in_cart=Exists(user.shoppingcart.filter(
                     recipe=OuterRef('pk'))),
             )
         return queryset
@@ -128,7 +128,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         """Загрузка списка покупок в виде txt-файла."""
 
         user = request.user
-        ingredients = user.shoppingcart_set.all().values(
+        ingredients = user.shoppingcart.all().values(
             ingredient=F('recipe__ingredients__name'),
             amount=F('recipe__recipeingredients__amount'),
             measurement_unit=F('recipe__ingredients__measurement_unit'))
