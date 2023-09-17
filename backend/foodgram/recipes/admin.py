@@ -38,8 +38,7 @@ class RecipeIngredientsInline(admin.TabularInline):
 class RecipeAdmin(admin.ModelAdmin):
     """Рецепт."""
 
-    inlines = [RecipeIngredientsInline]
-    readonly_fields = ('recipes_added_to_favorite_count',)
+    inlines = (RecipeIngredientsInline,)
     list_display = (
         'name', 'author_link', 'ingredients_list',
         'recipes_added_to_favorite_count', 'pub_date', 'image_tumbnail')
@@ -82,7 +81,7 @@ class RecipeAdmin(admin.ModelAdmin):
         """
 
         return Recipe.objects.select_related('author').prefetch_related(
-            'tags', 'ingredients'
+            'tags', 'recipeingredients'
         )
 
 

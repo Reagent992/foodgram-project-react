@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from recipes.models import Ingredients, Recipe, RecipeIngredients
@@ -26,16 +27,13 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'amount', 'measurement_unit')
 
 
-class HalfIngredientsSerializer(serializers.ModelSerializer):
+class WriteRecipeIngredientsSerializer(serializers.ModelSerializer):
     """Сериализатор для записи ингредиентов в рецепт."""
 
-    id = serializers.PrimaryKeyRelatedField(
-        source='ingredient', queryset=Ingredients.objects.all())
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit')
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredients.objects.all())
+    amount = serializers.IntegerField(min_value=settings.MIN_AMOUNT,
+                                      max_value=settings.MAX_AMOUNT)
 
     class Meta:
         model = RecipeIngredients
-        fields = ('id', 'amount', 'name', 'measurement_unit')
-        read_only_fields = ('name', 'measurement_unit')
+        fields = ('id', 'amount')

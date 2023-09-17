@@ -24,8 +24,12 @@ class SubscriptionResponseSerializer(CustomUserSerializer):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
         queryset = user.recipe.all()
-        if limit:
-            queryset = queryset[:int(limit)]
+        if limit and limit.isdigit():
+            try:
+                queryset = queryset[:int(limit)]
+            except ValueError:
+                pass
+
         return HalfFieldsRecipeSerializer(queryset, many=True).data
 
 
@@ -51,6 +55,5 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        serializer = SubscriptionResponseSerializer(
-            instance.author, context=self.context)
-        return serializer.data
+        return SubscriptionResponseSerializer(
+            instance.author, context=self.context).data

@@ -6,8 +6,8 @@ from recipes.models import Ingredients, Recipe
 
 
 class FilterRecipeSet(FilterSet):
-    is_favorited = BooleanFilter(field_name='is_fav')
-    is_in_shopping_cart = BooleanFilter(field_name='in_cart')
+    is_favorited = BooleanFilter(field_name='is_favorited')
+    is_in_shopping_cart = BooleanFilter(field_name='is_in_shopping_cart')
     tags = AllValuesMultipleFilter(
         field_name='tags__slug',
     )

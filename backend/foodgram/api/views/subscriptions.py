@@ -7,12 +7,13 @@ from rest_framework.response import Response
 
 from api.serializers.api.subscriptions import (SubscriptionResponseSerializer,
                                                SubscriptionSerializer)
-from users.models import Subscription
+from api.serializers.api.users import CustomUserSerializer
+from users.models import Subscription, User
 
 
 class UserViewSet(UserViewSetDjoser):
     """Пользователи."""
-
+    serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_permissions(self):
@@ -27,7 +28,8 @@ class UserViewSet(UserViewSetDjoser):
     def subscriptions(self, request):
         """Отображение списка подписок."""
 
-        queryset = request.user.subscription.all().prefetch_related('recipe')
+        queryset = User.objects.filter(
+            author__subscriber=request.user).prefetch_related('recipe')
         page = self.paginate_queryset(queryset)
         serializer = SubscriptionResponseSerializer(
             page, many=True, context={'request': request})
