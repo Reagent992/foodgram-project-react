@@ -19,7 +19,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
         Проверка подписан ли делающий запрос пользователь
         на просматриваемого пользователя.
         """
-
         requesting_user = self.context.get('request').user
         return (requesting_user.is_authenticated
                 and requesting_user.subscriptions.filter(

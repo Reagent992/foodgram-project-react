@@ -19,13 +19,11 @@ class UserAdmin(BaseUserAdmin):
     @admin.display(description='Подписчиков')
     def subscribers(self, user):
         """Количество подписчиков."""
-
         return user.author.count()
 
     @admin.display(description='Рецептов')
     def recipes(self, user):
         """Количество рецептов."""
-
         return user.recipe.count()
 
 

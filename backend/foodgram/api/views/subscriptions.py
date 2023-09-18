@@ -13,12 +13,12 @@ from users.models import Subscription, User
 
 class UserViewSet(UserViewSetDjoser):
     """Пользователи."""
+
     serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_permissions(self):
         """Доступ к users/me только у авторизованого пользователя."""
-
         if self.action == 'me':
             self.permission_classes = (IsAuthenticated,)
         return super().get_permissions()
@@ -27,7 +27,6 @@ class UserViewSet(UserViewSetDjoser):
             permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """Отображение списка подписок."""
-
         queryset = User.objects.filter(
             author__subscriber=request.user).prefetch_related('recipe')
         page = self.paginate_queryset(queryset)
@@ -39,7 +38,6 @@ class UserViewSet(UserViewSetDjoser):
             permission_classes=(IsAuthenticated,))
     def subscribe(self, request, id):
         """Подписка на пользователя."""
-
         data = {
             'subscriber': request.user.id,
             'author': id,
@@ -53,10 +51,9 @@ class UserViewSet(UserViewSetDjoser):
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
         """Отписаться от пользователя."""
-
         user = request.user
         instance = Subscription.objects.filter(subscriber=user, author=id)
-        if instance:
+        if instance.exists():
             instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({'errors': 'Этой записи не существует'},

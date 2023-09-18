@@ -14,16 +14,16 @@ class User(AbstractUser):
         unique=True,
         verbose_name='Электронная почта')
     username = models.CharField(
-        max_length=settings.USERNAME_LENGTH,
+        max_length=settings.NAME_LENGTH,
         verbose_name='Имя пользователя',
         unique=True,
         validators=(validate_username_me_restricted, username_validator)
     )
     first_name = models.CharField(
-        max_length=settings.FIRST_NAME_LENGHT,
+        max_length=settings.NAME_LENGTH,
         verbose_name='Имя')
     last_name = models.CharField(
-        max_length=settings.LAST_NAME_LENGHT,
+        max_length=settings.NAME_LENGTH,
         verbose_name='Фамилия')
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
@@ -68,7 +68,7 @@ class Subscription(models.Model):
             ),
             models.CheckConstraint(
                 name='%(app_label)s_%(class)s_prevent_self_follow',
-                check=~models.Q(subscriber=models.F("author")),
+                check=~models.Q(subscriber=models.F('author')),
             ),
         )
 

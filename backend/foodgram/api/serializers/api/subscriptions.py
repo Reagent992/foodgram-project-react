@@ -20,11 +20,10 @@ class SubscriptionResponseSerializer(CustomUserSerializer):
         """
         Список рецептов, с заданным ограничением на количество рецептов.
         """
-
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
         queryset = user.recipe.all()
-        if limit and limit.isdigit():
+        if limit:
             try:
                 queryset = queryset[:int(limit)]
             except ValueError:
@@ -48,12 +47,14 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        """Запрет подписки на себя."""
         if data['subscriber'] == data['author']:
             raise serializers.ValidationError(
-                'Нельзя подписываться на себя.'
+                {'error': 'Нельзя подписываться на себя.'}
             )
         return data
 
     def to_representation(self, instance):
+        """Вывод данных другим сериализатором."""
         return SubscriptionResponseSerializer(
             instance.author, context=self.context).data

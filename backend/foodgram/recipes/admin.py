@@ -50,14 +50,12 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Картинка')
     def image_tumbnail(self, recipe):
         """Поле с иконкой картинки."""
-
         return mark_safe(
             f'<img src={recipe.image.url} width="80" height="60">')
 
     @admin.display(description='Автор')
     def author_link(self, recipe):
         """Поле автора - ссылка на пользователя."""
-
         link = reverse(
             'admin:users_user_change', args=[recipe.author.id]
         )
@@ -66,20 +64,15 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='В избранном')
     def recipes_added_to_favorite_count(self, recipe):
         """Подсчет кол-ва добавлений рецепта в избранное."""
-
         return recipe.favoriterecipe.count()
 
     @admin.display(description='Список ингредиентов')
     def ingredients_list(self, recipe):
         """Список ингредиентов рецепта."""
-
         return [ingredient.name for ingredient in recipe.ingredients.all()]
 
     def get_queryset(self, request):
-        """
-        Оптимизация запроса в БД.
-        """
-
+        """Оптимизация запроса в БД."""
         return Recipe.objects.select_related('author').prefetch_related(
             'tags', 'recipeingredients'
         )

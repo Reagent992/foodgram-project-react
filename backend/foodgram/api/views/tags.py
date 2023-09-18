@@ -7,6 +7,7 @@ from recipes.models import Tag
 
 class TagViewSet(ReadOnlyModelViewSet):
     """Теги."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)

@@ -8,6 +8,7 @@ from recipes.models import Ingredients
 
 class IngredientsViewSet(ReadOnlyModelViewSet):
     """Ингредиенты."""
+
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     filter_backends = (DjangoFilterBackend,)

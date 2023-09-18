@@ -12,7 +12,7 @@ class Tag(models.Model):
 
     name = models.CharField(
         'Тег',
-        max_length=settings.TAG_NAME_LENGTH,
+        max_length=settings.TAG_LENGTH,
         unique=True
     )
     color = ColorField(
@@ -22,7 +22,7 @@ class Tag(models.Model):
     )
     slug = models.SlugField(
         'Текстовый идентификатор страницы',
-        max_length=settings.TAG_SLUG_LENGTH,
+        max_length=settings.TAG_LENGTH,
         unique=True
     )
 
@@ -39,11 +39,11 @@ class Ingredients(models.Model):
 
     name = models.CharField(
         'Название ингредиента',
-        max_length=settings.INGREDIENT_NAME_LENGTH
+        max_length=settings.INGREDIENT_LENGTH
     )
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=settings.MEASUREMENT_UNIT_LENGTH
+        max_length=settings.INGREDIENT_LENGTH
     )
 
     class Meta:
@@ -90,9 +90,9 @@ class Recipe(models.Model):
         'Время приготовления',
         validators=[
             MinValueValidator(
-                limit_value=settings.MIN_COOKING_TIME,
+                limit_value=settings.MIN_VALUE,
                 message=f'Время приготовления не может быть меньше:'
-                        f'{settings.MIN_COOKING_TIME}'),
+                        f'{settings.MIN_VALUE}'),
             MaxValueValidator(
                 limit_value=settings.MAX_COOKING_TIME,
                 message=f'Время приготовления не может быть больше:'
@@ -135,9 +135,9 @@ class RecipeIngredients(models.Model):
         'Количество',
         validators=(
             MinValueValidator(
-                limit_value=settings.MIN_AMOUNT,
+                limit_value=settings.MIN_VALUE,
                 message=f'Количество не может быть меньше:'
-                        f'{settings.MIN_AMOUNT}.'),
+                        f'{settings.MIN_VALUE}.'),
             MaxValueValidator(
                 limit_value=settings.MAX_AMOUNT,
                 message=f'Количество не может быть больше:'

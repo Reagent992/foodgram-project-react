@@ -26,7 +26,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Получение queryset и оптимизация запроса в БД."""
-
         user = self.request.user
         queryset = Recipe.objects.prefetch_related(
             'recipeingredients', 'tags',
@@ -44,18 +43,13 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от запроса."""
-
         if self.action in ['list', 'retrieve']:
             return RecipeListRetriveSerializer
         return RecipeCreateEditSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
     @staticmethod
     def ingredients_to_text(queryset):
         """Вывод ингредиентов."""
-
         return '\n'.join([
             '{} {}{}'.format(
                 row.get('ingredient__name'),
@@ -67,7 +61,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @staticmethod
     def create_obj(serializer, request, pk):
         """Добавление в список покупок и избранное."""
-
         data = {
             'user': request.user.pk,
             'recipe': pk,
@@ -82,10 +75,9 @@ class RecipesViewSet(viewsets.ModelViewSet):
     @staticmethod
     def delete_obj(model, request, pk):
         """Удаление из покупок и избранного."""
-
         user = request.user
         instance = model.objects.filter(user=user, recipe=pk)
-        if instance:
+        if instance.exists():
             instance.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({'errors': 'Этой записи не существует'},
@@ -95,33 +87,28 @@ class RecipesViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk):
         """Добавление в список покупок."""
-
         return self.create_obj(ShoppingCartSerializer, request, pk)
 
     @shopping_cart.mapping.delete
     def shopping_cart_delete(self, request, pk):
         """Удаление из списка покупок."""
-
         return self.delete_obj(ShoppingCart, request, pk)
 
     @action(methods=('post',), detail=True,
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, pk):
         """Добавление в избранное."""
-
         return self.create_obj(FavoriteRecipeSerializer, request, pk)
 
     @favorite.mapping.delete
     def favorite_delete(self, request, pk):
         """Удаление из избранного."""
-
         return self.delete_obj(FavoriteRecipe, request, pk)
 
     @action(methods=['get'], detail=False,
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         """Загрузка списка покупок в виде txt-файла."""
-
         user = request.user
         ingredients = RecipeIngredients.objects.filter(
             recipe__shoppingcart__user=user).values(
@@ -130,4 +117,5 @@ class RecipesViewSet(viewsets.ModelViewSet):
             'ingredient__name').annotate(total_amount=Sum('amount'))
 
         return FileResponse(self.ingredients_to_text(ingredients),
-                            content_type='text/plain')
+                            content_type='text/plain',
+                            filename='shopping-list')

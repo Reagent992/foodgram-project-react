@@ -33,7 +33,7 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=True)
     ingredients = WriteRecipeIngredientsSerializer(many=True)
     cooking_time = serializers.IntegerField(
-        min_value=settings.MIN_COOKING_TIME,
+        min_value=settings.MIN_VALUE,
         max_value=settings.MAX_COOKING_TIME
     )
     tags = serializers.PrimaryKeyRelatedField(
@@ -49,42 +49,40 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
 
     def validate_tags(self, tags):
         """Провера тегов на наличие и уникальность."""
-
         if not tags:
             raise serializers.ValidationError(
-                'Список тегов не может быть пустым.')
+                {'error': 'Список тегов не может быть пустым.'})
         if len(set(tags)) != len(tags):
-            raise serializers.ValidationError('Теги должны быть уникальными.')
+            raise serializers.ValidationError(
+                {'error': 'Теги должны быть уникальными.'})
         return tags
 
-    def validate_ingredients(self, ingredients):
+    def validate(self, attrs):
         """Проверка ингредиентов на наличие и уникальность."""
-
+        ingredients = attrs.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError(
-                'Список ингредиентов не может быть пустым.')
+                {'error': 'Список ингредиентов не может быть пустым.'})
 
         ingredients_length = [
             ingredient.get('id') for ingredient in ingredients
         ]
         if len(ingredients_length) != len(set(ingredients_length)):
             raise serializers.ValidationError(
-                'Список ингредиентов не может содержать дубликаты.')
+                {'error': 'Список ингредиентов не может содержать дубликаты.'})
 
-        return ingredients
+        return attrs
 
     def validate_image(self, image):
         """Проверка на наличие картинки."""
-
         if not image:
             raise serializers.ValidationError(
-                'Нельзя отправить рецепт без картинки.')
+                {'error': 'Нельзя отправить рецепт без картинки.'})
         return image
 
     @staticmethod
     def create_ingredients(ingredients, recipe):
         """Добавление ингредиентов рецепта в промежуточную модель."""
-
         recipe_ingredients_to_create = [
             RecipeIngredients(
                 recipe=recipe,
@@ -101,6 +99,7 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
         """Запись ингредиентов и тегов в рецепт."""
         ingredients = validated_data.pop('ingredients', False)
         tags = validated_data.pop('tags', False)
+        validated_data['author'] = self.context.get('request').user
         recipe = Recipe.objects.create(**validated_data)
         self.create_ingredients(ingredients=ingredients, recipe=recipe)
         recipe.tags.set(tags)
@@ -109,7 +108,6 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
     @atomic
     def update(self, instance, validated_data):
         """Изменение рецепта."""
-
         new_ingredients = validated_data.pop('ingredients', False)
         new_tags = validated_data.pop('tags', False)
         instance.ingredients.clear()
@@ -120,6 +118,5 @@ class RecipeCreateEditSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         """Отвечает сериализатор для чтения."""
-
         return RecipeListRetriveSerializer(instance=instance,
                                            context=self.context).data
