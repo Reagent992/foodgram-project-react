@@ -118,4 +118,4 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
         return FileResponse(self.ingredients_to_text(ingredients),
                             content_type='text/plain',
-                            filename='shopping-list')
+                            filename='shopping-list.txt')
