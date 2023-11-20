@@ -7,9 +7,6 @@
 ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 
-## Адрес проекта:
-
-* [foodrecipes.webhop.me](https://foodrecipes.webhop.me/)
 
 ### Проект представляет собой платформу для публикации кулинарных рецептов.
 
